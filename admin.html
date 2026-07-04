@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Center | AMWAJ ALMSELA</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="css/theme.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            
+            /* High-end color palette */
+            --bg-base: #f8fafc;
+            --bg-surface: rgba(255, 255, 255, 0.85);
+            --bg-sidebar: #0f172a;
+            --color-primary: #3b82f6;
+            --color-primary-rgb: 59, 130, 246;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+            --color-dark: #0f172a;
+            --color-text: #475569;
+            --color-muted: #94a3b8;
+            --border-color: rgba(226, 232, 240, 0.8);
+            
+            --sidebar-width: 280px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: radial-gradient(circle at 10% 20%, rgba(243, 244, 246, 0.8) 0%, rgba(229, 231, 235, 0.5) 90%), #f3f4f6;
+            min-height: 100vh;
+            color: var(--color-text);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6, .display-font {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--color-dark);
+        }
+
+        /* Ambient background glow points */
+        .glow-sphere {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .sphere-1 {
+            width: 400px;
+            height: 400px;
+            background: rgba(59, 130, 246, 0.15);
+            top: -100px;
+            right: -100px;
+        }
+        .sphere-2 {
+            width: 350px;
+            height: 350px;
+            background: rgba(168, 85, 247, 0.12);
+            bottom: -50px;
+            left: 20%;
+        }
+
+        /* Glassmorphism Containers */
+        .glass-card {
+            background: var(--bg-surface);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: var(--transition-smooth);
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Auth Portal Layout */
+        #auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+            padding: 48px 40px;
+            border-radius: 24px;
+        }
+
+        .auth-logo {
+            font-size: 32px;
+            color: var(--color-primary);
+            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Main Dashboard Panel */
+        #dashboard-container {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            color: #fff;
+            padding: 32px 20px 24px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar .brand {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-left: 12px;
+        }
+
+        .sidebar .brand i {
+            color: var(--color-primary);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 6px;
+        }
+
+        .sidebar-menu a {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-menu a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .sidebar-menu li.active a {
+            color: #fff;
+            background: var(--color-primary);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 20px;
+        }
+
+        .sidebar-footer #btn-logout {
+            color: #ef4444;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-footer #btn-logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            text-decoration: none;
+        }
+
+        /* Core Panel layout */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 40px 48px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 36px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        /* Metric Cards Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 28px;
+            margin-bottom: 36px;
+        }
+
+        .metric-card {
+            padding: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+        }
+
+        .metric-card.revenue::before { background: var(--color-primary); }
+        .metric-card.orders::before { background: #8b5cf6; }
+        .metric-card.customers::before { background: #ec4899; }
+        .metric-card.conversion::before { background: var(--color-success); }
+
+        .metric-label {
+            font-size: 13px;
+            color: var(--color-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--color-dark);
+            margin: 6px 0 0;
+        }
+
+        .metric-icon {
+            font-size: 24px;
+            color: var(--color-primary);
+            background: rgba(var(--color-primary-rgb), 0.08);
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+        }
+
+        .metric-card.orders .metric-icon { color: #8b5cf6; background: rgba(139, 92, 246, 0.08); }
+        .metric-card.customers .metric-icon { color: #ec4899; background: rgba(236, 72, 153, 0.08); }
+        .metric-card.conversion .metric-icon { color: var(--color-success); background: rgba(16, 185, 129, 0.08); }
+
+        /* SaaS Data Tables */
+        .table-responsive {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            overflow: hidden;
+        }
+
+        .table th {
+            background: #fafbfd;
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 13px;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding: 18px 24px;
+        }
+
+        .table td {
+            padding: 18px 24px;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--color-text);
+            font-size: 14px;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Fine Status Badges */
+        .custom-badge {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            text-transform: capitalize;
+            display: inline-block;
+        }
+
+        .badge-completed, .badge-success-glow {
+            color: #047857;
+            background-color: #ecfdf5;
+            border: 1px solid #d1fae5;
+        }
+
+        .badge-pending, .badge-warning-glow {
+            color: #b45309;
+            background-color: #fffbeb;
+            border: 1px solid #fef3c7;
+        }
+
+        .badge-failed, .badge-danger-glow {
+            color: #b91c1c;
+            background-color: #fef2f2;
+            border: 1px solid #fee2e2;
+        }
+
+        .badge-info-glow {
+            color: #1d4ed8;
+            background-color: #eff6ff;
+            border: 1px solid #dbeafe;
+        }
+
+        /* Product image shadow */
+        .thumb-img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Modern Form Inputs */
+        .form-control {
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-family: var(--font-body);
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            border-color: var(--color-primary);
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            border: none;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 12px;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: var(--color-text);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-action:hover {
+            background: #e2e8f0;
+            color: var(--color-dark);
+            transform: scale(1.05);
+        }
+
+        .btn-action.delete:hover {
+            background: #fee2e2;
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+
+        /* Alert notifications */
+        #toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1060;
+        }
+
+        /* Tab switching transitions */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient glows -->
+    <div class="glow-sphere sphere-1"></div>
+    <div class="glow-sphere sphere-2"></div>
+
+    <!-- Alerts Container -->
+    <div id="toast-container"></div>
+
+    <!-- LOGIN PANEL -->
+    <div id="auth-container">
+        <div class="glass-card auth-card">
+            <div class="auth-logo">
+                <i class="fa fa-cubes"></i>
+            </div>
+            <h2 class="mb-2">Admin Portal</h2>
+            <p class="text-muted mb-4 small">Manage products, inventory, orders, and review dashboard settings.</p>
+            <form id="login-form">
+                <div class="form-group text-left mb-3">
+                    <label class="font-weight-semibold text-dark small">Administrator Email</label>
+                    <input type="email" id="login-email" class="form-control form-control-lg" placeholder="admin@amwaj.com" required>
+                </div>
+                <div class="form-group text-left mb-4">
+                    <label class="font-weight-semibold text-dark small">Password</label>
+                    <input type="password" id="login-password" class="form-control form-control-lg" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Access Dashboard</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <a href="/home" class="brand">
+                <i class="fa fa-cubes"></i> Amwaj Admin
+            </a>
+            <ul class="sidebar-menu">
+                <li class="active" data-tab="overview"><a href="#"><i class="fa fa-dashboard"></i> Overview</a></li>
+                <li data-tab="products"><a href="#"><i class="fa fa-shopping-basket"></i> Products</a></li>
+                <li data-tab="orders"><a href="#"><i class="fa fa-shopping-cart"></i> Orders</a></li>
+                <li data-tab="reviews"><a href="#"><i class="fa fa-star"></i> Reviews</a></li>
+                <li data-tab="coupons"><a href="#"><i class="fa fa-tags"></i> Coupons</a></li>
+                <li data-tab="settings"><a href="#"><i class="fa fa-gears"></i> CMS & Settings</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="#" id="btn-logout" class="text-decoration-none">
+                    <i class="fa fa-sign-out"></i> Sign Out
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            
+            <!-- OVERVIEW TAB -->
+            <div id="tab-overview" class="tab-content active">
+                <div class="page-header">
+                    <h2 class="page-title">Overview Dashboard</h2>
+                </div>
+                <!-- Metrics -->
+                <div class="metrics-grid">
+                    <div class="glass-card metric-card revenue">
+                        <div>
+                            <div class="metric-label">Total Revenue</div>
+                            <div class="metric-value" id="stat-revenue">QAR 0.00</div>
+                        </div>
+                        <div class="metric-icon"><i class="fa fa-money"></i></div>
+                    </div>
+                    <div class="glass-card metric-card orders">
+                        <div>
+                            <div class="metric-label">Total Orders</div>
+                            <div class="metric-value" id="stat-orders">0</div>
+                        </div>
+                        <div class="metric-icon"><i class="fa fa-truck"></i></div>
+                    </div>
+                    <div class="glass-card metric-card customers">
+                        <div>
+                            <div class="metric-label">Customers</div>
+                            <div class="metric-value" id="stat-customers">0</div>
+                        </div>
+                        <div class="metric-icon"><i class="fa fa-users"></i></div>
+                    </div>
+                    <div class="glass-card metric-card conversion">
+                        <div>
+                            <div class="metric-label">Conversion Rate</div>
+                            <div class="metric-value" id="stat-conversion">0%</div>
+                        </div>
+                        <div class="metric-icon"><i class="fa fa-pie-chart"></i></div>
+                    </div>
+                </div>
+
+                <!-- Chart Card -->
+                <div class="glass-card p-4 mb-4">
+                    <h5 class="mb-4">Revenue & Performance Trends (Past 30 Days)</h5>
+                    <div style="height: 320px; position: relative;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Top Products -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="glass-card p-4 h-100">
+                            <h5 class="mb-3">Top Selling Items</h5>
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Price</th>
+                                            <th>Sales</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="top-sellers-body">
+                                        <!-- Dynamic content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Recent Orders -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="glass-card p-4 h-100">
+                            <h5 class="mb-3">Recent Invoices</h5>
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>User</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-orders-body">
+                                        <!-- Dynamic content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRODUCTS TAB -->
+            <div id="tab-products" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">Products Inventory</h2>
+                    <button class="btn btn-primary" id="btn-add-product" data-toggle="modal" data-target="#product-modal">
+                        <i class="fa fa-plus mr-2"></i> Create Product
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>SKU</th>
+                                <th>Price</th>
+                                <th>Inventory</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ORDERS TAB -->
+            <div id="tab-orders" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">Invoices & Shipments</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>User</th>
+                                <th>Subtotal</th>
+                                <th>Invoice Total</th>
+                                <th>Status</th>
+                                <th>Logistics Details</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- REVIEWS TAB -->
+            <div id="tab-reviews" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">Moderations & Review Ratings</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Item</th>
+                                <th>Stars</th>
+                                <th>Comment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-table-body">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- COUPONS TAB -->
+            <div id="tab-coupons" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">Discount Vouchers</h2>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="glass-card p-4">
+                            <h5 class="mb-3">Create Voucher</h5>
+                            <form id="coupon-form">
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-semibold text-dark">Coupon Code</label>
+                                    <input type="text" id="coupon-code" class="form-control" placeholder="E.g. SUMMER10" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-semibold text-dark">Voucher Mode</label>
+                                    <select id="coupon-type" class="form-control">
+                                        <option value="percentage">Percentage (%)</option>
+                                        <option value="fixed">Fixed (QAR)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-semibold text-dark">Discount Value</label>
+                                    <input type="number" id="coupon-value" class="form-control" placeholder="E.g. 10" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label class="small font-weight-semibold text-dark">Min Cart Value (QAR)</label>
+                                    <input type="number" id="coupon-min-order" class="form-control" value="0">
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Generate Voucher</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="table-responsive">
+                            <table class="table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Mode</th>
+                                        <th>Voucher Value</th>
+                                        <th>Min order</th>
+                                        <th>Redemptions</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="coupons-table-body">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS TAB -->
+            <div id="tab-settings" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">Portal Configurations & CMS</h2>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="glass-card p-4 h-100">
+                            <h5 class="mb-4">Global Configurations</h5>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-semibold text-dark">Business Shop Name</label>
+                                <input type="text" id="setting-shop-name" class="form-control" placeholder="Amwaj Almesela">
+                            </div>
+                            <div class="form-group mb-4">
+                                <label class="small font-weight-semibold text-dark">VAT / Sales Tax (%)</label>
+                                <input type="number" id="setting-tax-rate" class="form-control" placeholder="5">
+                            </div>
+                            <button class="btn btn-primary" id="btn-save-settings">Commit Changes</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="glass-card p-4 h-100">
+                            <h5 class="mb-4">Promotional Banners</h5>
+                            <form id="banner-form">
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-semibold text-dark">Banner Title</label>
+                                    <input type="text" id="banner-title" class="form-control" placeholder="Flash Summer Deals" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label class="small font-weight-semibold text-dark">Upload Slide Banner Image</label>
+                                    <input type="file" id="banner-image" class="form-control-file" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Publish Banner</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Product editor Modal -->
+    <div class="modal fade" id="product-modal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content glass-card border-0">
+                <div class="modal-header py-4 px-4 border-0">
+                    <h4 class="modal-title" id="product-modal-title">Create Product</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="product-form" enctype="multipart/form-data">
+                    <div class="modal-body px-4 py-2">
+                        <input type="hidden" id="product-id">
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="small font-weight-bold text-dark">Product Name</label>
+                                <input type="text" id="product-name" class="form-control" placeholder="E.g. Heavy Duty Scrubber" required>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="small font-weight-bold text-dark">SKU Code</label>
+                                <input type="text" id="product-sku" class="form-control" placeholder="E.g. AMW-HD-88">
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="small font-weight-bold text-dark">Base Price (QAR)</label>
+                                <input type="number" id="product-price" class="form-control" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="small font-weight-bold text-dark">Discount Price (QAR)</label>
+                                <input type="number" id="product-discount-price" class="form-control" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="small font-weight-bold text-dark">Initial Warehouse Stock</label>
+                                <input type="number" id="product-quantity" class="form-control" value="50" required>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="small font-weight-bold text-dark">Brand</label>
+                                <select id="product-brand" class="form-control">
+                                    <option value="1">AMWAJ</option>
+                                </select>
+                            </div>
+                            <div class="col-12 form-group mb-3">
+                                <label class="small font-weight-bold text-dark">Product Description</label>
+                                <textarea id="product-description" class="form-control" rows="3" placeholder="Describe the materials and components details..."></textarea>
+                            </div>
+                            <div class="col-12 form-group mb-4" id="file-upload-section">
+                                <label class="small font-weight-bold text-dark">Upload Item Images</label>
+                                <input type="file" id="product-images" class="form-control-file" multiple>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4">
+                        <button type="button" class="btn btn-light" data-dismiss="modal" style="border-radius: 12px; font-weight: 700;">Discard</button>
+                        <button type="submit" class="btn btn-primary">Commit Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Scripts -->
+    <script src="js/jquery-2.2.4.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api/v1';
+        let token = localStorage.getItem('admin_token');
+        let salesChart = null;
+
+        // Alerts helper
+        function showAlert(message, type = 'success') {
+            const id = 'toast-' + Date.now();
+            const html = `
+                <div id="${id}" class="alert alert-${type} alert-dismissible fade show shadow-lg border-0 text-white" role="alert" style="border-radius: 12px; margin-bottom: 12px; background-color: ${type === 'success' ? '#10b981' : '#ef4444'};">
+                    <div class="d-flex align-items-center pr-3">
+                        <i class="fa ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2" style="font-size: 16px;"></i>
+                        <strong>${message}</strong>
+                    </div>
+                    <button type="button" class="close text-white" data-dismiss="alert" aria-label="Close" style="opacity: 0.8; top: 50%; transform: translateY(-50%);">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            `;
+            $('#toast-container').append(html);
+            setTimeout(() => {
+                $(`#${id}`).alert('close');
+            }, 4500);
+        }
+
+        // Check if admin is logged in
+        function checkAuth() {
+            if (token) {
+                $('#auth-container').hide();
+                $('#dashboard-container').show();
+                loadTab('overview');
+            } else {
+                $('#auth-container').show();
+                $('#dashboard-container').hide();
+            }
+        }
+
+        // Headers helper
+        function getHeaders() {
+            return {
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        // Login Submit
+        $('#login-form').on('submit', function(e) {
+            e.preventDefault();
+            const email = $('#login-email').val();
+            const password = $('#login-password').val();
+
+            $.ajax({
+                url: `${API_BASE}/auth/login`,
+                method: 'POST',
+                data: JSON.stringify({ email, password }),
+                contentType: 'application/json',
+                success: function(res) {
+                    if (res.data.user.role.name !== 'admin') {
+                        showAlert('Access denied: Unauthorized role.', 'danger');
+                        return;
+                    }
+                    token = res.data.token;
+                    localStorage.setItem('admin_token', token);
+                    localStorage.setItem('admin_user', JSON.stringify(res.data.user));
+                    showAlert('Access granted. Welcome to Admin Portal!');
+                    checkAuth();
+                },
+                error: function(err) {
+                    showAlert(err.responseJSON ? err.responseJSON.message : 'Invalid credentials', 'danger');
+                }
+            });
+        });
+
+        // Logout
+        $('#btn-logout').on('click', function(e) {
+            e.preventDefault();
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+            token = null;
+            checkAuth();
+        });
+
+        // Tab Switching
+        $('.sidebar-menu li').on('click', function() {
+            $('.sidebar-menu li').removeClass('active');
+            $(this).addClass('active');
+            const tabName = $(this).data('tab');
+            loadTab(tabName);
+        });
+
+        function loadTab(tabName) {
+            $('.tab-content').removeClass('active');
+            $(`#tab-${tabName}`).addClass('active');
+
+            if (tabName === 'overview') loadOverview();
+            else if (tabName === 'products') loadProducts();
+            else if (tabName === 'orders') loadOrders();
+            else if (tabName === 'reviews') loadReviews();
+            else if (tabName === 'coupons') loadCoupons();
+            else if (tabName === 'settings') loadSettings();
+        }
+
+        // 1. OVERVIEW
+        function loadOverview() {
+            $.ajax({
+                url: `${API_BASE}/admin/analytics/overview`,
+                headers: getHeaders(),
+                success: function(res) {
+                    const m = res.metrics;
+                    $('#stat-revenue').text(m.totalRevenue);
+                    $('#stat-orders').text(m.totalOrders);
+                    $('#stat-customers').text(m.totalCustomers);
+                    $('#stat-conversion').text(m.conversionRate);
+
+                    // Render best sellers
+                    let sellersHtml = '';
+                    res.bestSellers.forEach(p => {
+                        const img = p.images && p.images.length > 0 ? p.images[0].url : 'images/image-place-holder.png';
+                        sellersHtml += `
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="${img}" class="thumb-img mr-3" onerror="this.src='images/image-place-holder.png'">
+                                        <span class="font-weight-semibold text-truncate text-dark" style="max-width: 220px;">${p.name}</span>
+                                    </div>
+                                </td>
+                                <td>QAR ${parseFloat(p.price).toFixed(2)}</td>
+                                <td class="font-weight-bold text-primary">${p.total_sold} units</td>
+                            </tr>
+                        `;
+                    });
+                    $('#top-sellers-body').html(sellersHtml || '<tr><td colspan="3" class="text-center text-muted py-3">No sales metrics recorded yet</td></tr>');
+
+                    // Render recent orders
+                    let ordersHtml = '';
+                    res.recentOrders.forEach(o => {
+                        ordersHtml += `
+                            <tr>
+                                <td><span class="font-weight-bold text-dark">${o.order_number}</span></td>
+                                <td>${o.user ? o.user.name : 'Guest'}</td>
+                                <td>QAR ${parseFloat(o.total).toFixed(2)}</td>
+                                <td><span class="custom-badge badge-${o.status === 'completed' ? 'success' : 'pending'}-glow">${o.status}</span></td>
+                            </tr>
+                        `;
+                    });
+                    $('#recent-orders-body').html(ordersHtml || '<tr><td colspan="4" class="text-center text-muted py-3">No orders available</td></tr>');
+                }
+            });
+
+            // Sales Chart
+            $.ajax({
+                url: `${API_BASE}/admin/analytics/sales-chart`,
+                headers: getHeaders(),
+                success: function(res) {
+                    const dates = res.data.map(d => d.date);
+                    const revenues = res.data.map(d => parseFloat(d.revenue));
+                    
+                    if (salesChart) salesChart.destroy();
+                    
+                    const ctx = document.getElementById('salesChart').getContext('2d');
+                    
+                    // Custom gradient background
+                    const chartGlow = ctx.createLinearGradient(0, 0, 0, 300);
+                    chartGlow.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+                    chartGlow.addColorStop(1, 'rgba(59, 130, 246, 0.00)');
+
+                    salesChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: dates.length > 0 ? dates : ['No Sales Recorded'],
+                            datasets: [{
+                                data: revenues.length > 0 ? revenues : [0],
+                                borderColor: '#3b82f6',
+                                backgroundColor: chartGlow,
+                                borderWidth: 3.5,
+                                fill: true,
+                                tension: 0.35,
+                                pointBackgroundColor: '#3b82f6',
+                                pointBorderColor: '#fff',
+                                pointHoverRadius: 7,
+                                pointHoverBackgroundColor: '#3b82f6'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    grid: { color: 'rgba(241, 245, 249, 0.8)' },
+                                    ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', weight: '600' } }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: '#64748b', font: { family: 'Plus Jakarta Sans', weight: '600' } }
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // 2. PRODUCTS
+        function loadProducts() {
+            $.ajax({
+                url: `${API_BASE}/products?limit=100`,
+                success: function(res) {
+                    let html = '';
+                    res.data.forEach(p => {
+                        const img = p.images && p.images.length > 0 ? p.images[0].url : 'images/image-place-holder.png';
+                        const qty = p.inventory ? p.inventory.quantity : 0;
+                        html += `
+                            <tr>
+                                <td><img src="${img}" class="thumb-img" onerror="this.src='images/image-place-holder.png'"></td>
+                                <td><span class="font-weight-bold text-dark d-block text-truncate" style="max-width: 260px;">${p.name}</span></td>
+                                <td><code>${p.sku || 'N/A'}</code></td>
+                                <td class="text-primary font-weight-semibold">QAR ${parseFloat(p.price).toFixed(2)}</td>
+                                <td>
+                                    <span class="custom-badge badge-${qty <= 5 ? 'failed' : 'success'}-glow font-weight-bold">
+                                        ${qty} In Stock
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-light btn-action mr-1" onclick="editProduct(${p.id})"><i class="fa fa-pencil text-primary"></i></button>
+                                    <button class="btn btn-light btn-action delete" onclick="deleteProduct(${p.id})"><i class="fa fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $('#products-table-body').html(html || '<tr><td colspan="6" class="text-center text-muted py-3">No products inventory loaded</td></tr>');
+                }
+            });
+        }
+
+        // Add Product Form
+        $('#btn-add-product').on('click', function() {
+            $('#product-modal-title').text('Create Product');
+            $('#product-id').val('');
+            $('#product-form')[0].reset();
+            $('#file-upload-section').show();
+        });
+
+        $('#product-form').on('submit', function(e) {
+            e.preventDefault();
+            const id = $('#product-id').val();
+            const isEdit = !!id;
+
+            const payload = {
+                name: $('#product-name').val(),
+                sku: $('#product-sku').val(),
+                price: parseFloat($('#product-price').val()),
+                discount_price: $('#product-discount-price').val() ? parseFloat($('#product-discount-price').val()) : null,
+                quantity: parseInt($('#product-quantity').val()),
+                brand_id: parseInt($('#product-brand').val()),
+                description: $('#product-description').val()
+            };
+
+            const url = isEdit ? `${API_BASE}/products/${id}` : `${API_BASE}/products`;
+            const method = isEdit ? 'PUT' : 'POST';
+
+            let ajaxOptions = {
+                url,
+                method,
+                headers: getHeaders(),
+                success: function() {
+                    $('#product-modal').modal('hide');
+                    showAlert(isEdit ? 'Product details updated' : 'Product created successfully');
+                    loadProducts();
+                },
+                error: function(err) {
+                    showAlert(err.responseJSON ? err.responseJSON.message : 'Operation failed', 'danger');
+                }
+            };
+
+            if (!isEdit) {
+                const filesInput = document.getElementById('product-images');
+                const files = filesInput.files;
+                const fd = new FormData();
+                fd.append('name', payload.name);
+                fd.append('sku', payload.sku);
+                fd.append('price', payload.price);
+                if (payload.discount_price) fd.append('discount_price', payload.discount_price);
+                fd.append('quantity', payload.quantity);
+                fd.append('brand_id', payload.brand_id);
+                fd.append('description', payload.description);
+                for(let i=0; i<files.length; i++) {
+                    fd.append('images', files[i]);
+                }
+                ajaxOptions.data = fd;
+                ajaxOptions.processData = false;
+                ajaxOptions.contentType = false;
+            } else {
+                ajaxOptions.data = JSON.stringify(payload);
+                ajaxOptions.contentType = 'application/json';
+            }
+
+            $.ajax(ajaxOptions);
+        });
+
+        window.editProduct = function(productId) {
+            $.ajax({
+                url: `${API_BASE}/products/${productId}`,
+                success: function(res) {
+                    const p = res.data;
+                    $('#product-modal-title').text('Update Product Details');
+                    $('#product-id').val(p.id);
+                    $('#product-name').val(p.name);
+                    $('#product-sku').val(p.sku);
+                    $('#product-price').val(p.price);
+                    $('#product-discount-price').val(p.discount_price || '');
+                    $('#product-quantity').val(p.inventory ? p.inventory.quantity : 0);
+                    $('#product-brand').val(p.brand_id || 1);
+                    $('#product-description').val(p.description);
+                    $('#file-upload-section').hide();
+                    $('#product-modal').modal('show');
+                }
+            });
+        };
+
+        window.deleteProduct = function(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                $.ajax({
+                    url: `${API_BASE}/products/${productId}`,
+                    method: 'DELETE',
+                    headers: getHeaders(),
+                    success: function() {
+                        showAlert('Product deleted');
+                        loadProducts();
+                    }
+                });
+            }
+        };
+
+        // 3. ORDERS
+        function loadOrders() {
+            $.ajax({
+                url: `${API_BASE}/orders/admin/list`,
+                headers: getHeaders(),
+                success: function(res) {
+                    let html = '';
+                    res.data.forEach(o => {
+                        let statusColor = 'pending';
+                        if (o.status === 'completed' || o.status === 'delivered') statusColor = 'success';
+                        else if (o.status === 'cancelled') statusColor = 'failed';
+                        else if (o.status === 'shipped') statusColor = 'info-glow';
+
+                        html += `
+                            <tr>
+                                <td><span class="font-weight-bold text-dark">${o.order_number}</span></td>
+                                <td>
+                                    <div class="font-weight-semibold text-dark">${o.user ? o.user.name : 'Guest'}</div>
+                                    <span class="small text-muted">${o.user ? o.user.email : ''}</span>
+                                </td>
+                                <td>QAR ${parseFloat(o.subtotal).toFixed(2)}</td>
+                                <td class="font-weight-bold text-primary">QAR ${parseFloat(o.total).toFixed(2)}</td>
+                                <td>
+                                    <select class="form-control form-control-sm text-dark font-weight-bold" style="border-radius: 8px; width: 130px;" onchange="updateStatus(${o.id}, this.value)">
+                                        <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                                        <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
+                                        <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                                        <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                        <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                        <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="small">Carrier: <strong>${o.shipping_carrier || 'N/A'}</strong></div>
+                                    <div class="small">Tracking: <strong>${o.tracking_number || 'N/A'}</strong></div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-light btn-action" onclick="promptTracking(${o.id})" title="Logistics info update">
+                                        <i class="fa fa-plane text-info"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $('#orders-table-body').html(html || '<tr><td colspan="7" class="text-center text-muted py-3">No orders found</td></tr>');
+                }
+            });
+        }
+
+        window.updateStatus = function(orderId, status) {
+            $.ajax({
+                url: `${API_BASE}/orders/admin/status/${orderId}`,
+                method: 'PUT',
+                headers: getHeaders(),
+                data: JSON.stringify({ status }),
+                contentType: 'application/json',
+                success: function() {
+                    showAlert('Order status updated');
+                    loadOrders();
+                }
+            });
+        };
+
+        window.promptTracking = function(orderId) {
+            const carrier = prompt('Enter Shipping Carrier (e.g. DHL, FedEx):');
+            if (carrier === null) return;
+            const tracking = prompt('Enter Tracking Number:');
+            if (tracking === null) return;
+
+            $.ajax({
+                url: `${API_BASE}/orders/admin/status/${orderId}`,
+                method: 'PUT',
+                headers: getHeaders(),
+                data: JSON.stringify({ status: 'shipped', shipping_carrier: carrier, tracking_number: tracking }),
+                contentType: 'application/json',
+                success: function() {
+                    showAlert('Tracking logistics updated');
+                    loadOrders();
+                }
+            });
+        };
+
+        // 4. REVIEWS
+        function loadReviews() {
+            $.ajax({
+                url: `${API_BASE}/reviews/admin/pending`,
+                headers: getHeaders(),
+                success: function(res) {
+                    let html = '';
+                    res.data.forEach(r => {
+                        html += `
+                            <tr>
+                                <td>${r.user ? r.user.name : 'Unknown'}</td>
+                                <td><span class="font-weight-semibold text-dark">${r.product ? r.product.name : 'Product'}</span></td>
+                                <td><span class="text-warning font-weight-bold">${r.rating} ★</span></td>
+                                <td class="italic text-muted">"${r.comment || ''}"</td>
+                                <td>
+                                    <button class="btn btn-success btn-sm font-weight-bold mr-1" onclick="moderateReview(${r.id}, true)" style="border-radius: 8px;">Approve</button>
+                                    <button class="btn btn-danger btn-sm font-weight-bold" onclick="moderateReview(${r.id}, false)" style="border-radius: 8px;">Reject</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $('#reviews-table-body').html(html || '<tr><td colspan="5" class="text-center text-muted py-3">No pending review moderation</td></tr>');
+                }
+            });
+        }
+
+        window.moderateReview = function(reviewId, approve) {
+            $.ajax({
+                url: `${API_BASE}/reviews/admin/moderate/${reviewId}`,
+                method: 'PUT',
+                headers: getHeaders(),
+                data: JSON.stringify({ approve }),
+                contentType: 'application/json',
+                success: function() {
+                    showAlert(approve ? 'Review approved and published' : 'Review rejected');
+                    loadReviews();
+                }
+            });
+        };
+
+        // 5. COUPONS
+        function loadCoupons() {
+            $.ajax({
+                url: `${API_BASE}/coupons/admin/list`,
+                headers: getHeaders(),
+                success: function(res) {
+                    let html = '';
+                    res.data.forEach(c => {
+                        html += `
+                            <tr>
+                                <td><code>${c.code}</code></td>
+                                <td class="text-capitalize">${c.type}</td>
+                                <td class="font-weight-bold text-dark">${c.type === 'percentage' ? c.value + '%' : 'QAR ' + c.value}</td>
+                                <td>QAR ${c.min_order}</td>
+                                <td>${c.used_count} redemptions</td>
+                                <td>
+                                    <button class="btn btn-light btn-action delete" onclick="deleteCoupon(${c.id})"><i class="fa fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $('#coupons-table-body').html(html || '<tr><td colspan="6" class="text-center text-muted py-3">No vouchers created yet</td></tr>');
+                }
+            });
+        }
+
+        $('#coupon-form').on('submit', function(e) {
+            e.preventDefault();
+            const payload = {
+                code: $('#coupon-code').val(),
+                type: $('#coupon-type').val(),
+                value: parseFloat($('#coupon-value').val()),
+                min_order: parseFloat($('#coupon-min-order').val())
+            };
+
+            $.ajax({
+                url: `${API_BASE}/coupons/admin/create`,
+                method: 'POST',
+                headers: getHeaders(),
+                data: JSON.stringify(payload),
+                contentType: 'application/json',
+                success: function() {
+                    showAlert('Voucher code created');
+                    $('#coupon-form')[0].reset();
+                    loadCoupons();
+                }
+            });
+        });
+
+        window.deleteCoupon = function(couponId) {
+            if (confirm('Delete this coupon code?')) {
+                $.ajax({
+                    url: `${API_BASE}/coupons/admin/delete/${couponId}`,
+                    method: 'DELETE',
+                    headers: getHeaders(),
+                    success: function() {
+                        showAlert('Voucher code deleted');
+                        loadCoupons();
+                    }
+                });
+            }
+        };
+
+        // 6. SETTINGS
+        function loadSettings() {
+            $.ajax({
+                url: `${API_BASE}/settings`,
+                success: function(res) {
+                    res.data.forEach(s => {
+                        if (s.key === 'shop_name') $('#setting-shop-name').val(s.value);
+                        if (s.key === 'tax_rate') $('#setting-tax-rate').val(s.value);
+                    });
+                }
+            });
+        }
+
+        $('#btn-save-settings').on('click', function() {
+            const shopName = $('#setting-shop-name').val();
+            const taxRate = $('#setting-tax-rate').val();
+
+            const saveShop = $.ajax({
+                url: `${API_BASE}/settings`,
+                method: 'PUT',
+                headers: getHeaders(),
+                data: JSON.stringify({ key: 'shop_name', value: shopName }),
+                contentType: 'application/json'
+            });
+
+            const saveTax = $.ajax({
+                url: `${API_BASE}/settings`,
+                method: 'PUT',
+                headers: getHeaders(),
+                data: JSON.stringify({ key: 'tax_rate', value: taxRate }),
+                contentType: 'application/json'
+            });
+
+            Promise.all([saveShop, saveTax]).then(() => {
+                showAlert('Global configuration settings committed');
+            });
+        });
+
+        $('#banner-form').on('submit', function(e) {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('title', $('#banner-title').val());
+            fd.append('image', document.getElementById('banner-image').files[0]);
+
+            $.ajax({
+                url: `${API_BASE}/banners/admin/create`,
+                method: 'POST',
+                headers: getHeaders(),
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function() {
+                    showAlert('Marketing slide banner published successfully');
+                    $('#banner-form')[0].reset();
+                }
+            });
+        });
+
+        // Init
+        checkAuth();
+    </script>
+</body>
+</html>

@@ -486,7 +486,7 @@
     }
 
     function renderRelatedCard(product) {
-        return '<a class="local-related-card" href="products.html?product=' + encodeURIComponent(product.slug || product.id) + '">' +
+        return '<a class="local-related-card" href="/product?product=' + encodeURIComponent(product.slug || product.id) + '">' +
             '<img src="' + product.image + '" alt="' + escapeHtml(product.name) + '" onerror="this.src=\'images/image-place-holder.png\'">' +
             '<div>' +
             '<div class="local-related-name">' + escapeHtml(product.name) + '</div>' +
@@ -611,7 +611,7 @@
             if (window.addWishlist) window.addWishlist(product.id, 'add-wishlist-modal');
         });
 
-        window.history.replaceState(null, '', 'products.html?product=' + productSlug);
+        window.history.replaceState(null, '', '/product?product=' + productSlug);
     }
 
     function filterProducts(products, categories, urlParams) {
@@ -668,7 +668,7 @@
             '<div class="overflow-hidden position-relative">' +
             '<div class="inline_product clickable">' +
             '<span class="for-discoutn-value-null"></span>' +
-            '<a href="products.html?product=' + encodeURIComponent(p.slug || p.id) + '">' +
+            '<a href="/product?product=' + encodeURIComponent(p.slug || p.id) + '">' +
             '<img src="' + p.image + '" onerror="this.src=\'images/image-place-holder.png\'">' +
             '</a>' +
             '<div class="quick-view">' +
@@ -676,7 +676,7 @@
             '<i class="czi-eye align-middle"></i></a></div></div>' +
             '<div class="single-product-details">' +
             '<div class="mb-1"><span class="small text-muted">' + p.brand + '</span></div>' +
-            '<div><a href="products.html?product=' + encodeURIComponent(p.slug || p.id) + '" class="text-capitalize fw-semibold text-truncate d-block">' + p.name + '</a></div>' +
+            '<div><a href="/product?product=' + encodeURIComponent(p.slug || p.id) + '" class="text-capitalize fw-semibold text-truncate d-block">' + p.name + '</a></div>' +
             '<div class="justify-content-between"><div class="product-price">' +
             '<span class="text-accent text-dark font-weight-bold">' + p.price + '</span></div></div>' +
             '</div></div></div></div>';
@@ -692,7 +692,7 @@
             baseParams.set('page', String(i));
             const active = i === currentPage ? ' active' : '';
             html += '<li class="page-item' + active + '">' +
-                '<a class="page-link" href="products.html?' + baseParams.toString() + '">' + i + '</a></li>';
+                '<a class="page-link" href="/products?' + baseParams.toString() + '">' + i + '</a></li>';
         }
 
         html += '</ul></nav>';
@@ -705,8 +705,18 @@
         if (!grid || !titleEl) return;
 
         Promise.all([
-            fetch('data/categories.json').then(function (res) { return res.json(); }),
-            fetch('data/products.json').then(function (res) { return res.json(); })
+            fetch('http://localhost:5000/api/v1/categories')
+                .then(function (res) { return res.json(); })
+                .then(function (res) { return res.data || res; })
+                .catch(function () {
+                    return fetch('data/categories.json').then(function (r) { return r.json(); });
+                }),
+            fetch('http://localhost:5000/api/v1/products?limit=100')
+                .then(function (res) { return res.json(); })
+                .then(function (res) { return res.data || res; })
+                .catch(function () {
+                    return fetch('data/products.json').then(function (r) { return r.json(); });
+                })
         ]).then(function (results) {
             const categories = results[0];
             const products = results[1];
@@ -734,14 +744,14 @@
                 categoriesContainer.innerHTML = categories.map(function (cat) {
                     const isActive = activeCatId && parseInt(activeCatId, 10) === cat.id;
                     let html = '<li class="mb-2">' +
-                        '<a href="products.html?id=' + cat.id + '&data_from=category&page=1" class="' +
+                        '<a href="/products?id=' + cat.id + '&data_from=category&page=1" class="' +
                         (isActive ? 'text-primary font-weight-bold' : 'text-dark font-weight-bold') + ' d-block">' +
                         cat.name + '</a>';
                     if (cat.subcategories.length > 0) {
                         html += '<ul class="list-unstyled pl-3 mt-1 small">';
                         html += cat.subcategories.map(function (sub) {
                             const subActive = activeCatId && parseInt(activeCatId, 10) === sub.id;
-                            return '<li class="mb-1"><a href="products.html?id=' + sub.id +
+                            return '<li class="mb-1"><a href="/products?id=' + sub.id +
                                 '&data_from=category&page=1" class="' +
                                 (subActive ? 'text-primary' : 'text-muted') + ' d-block">' + sub.name + '</a></li>';
                         }).join('');

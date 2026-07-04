@@ -1,3 +1,44 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
+
+/* Map missing local Cartzilla icons to cloud FontAwesome glyphs */
+[class^="czi-"], [class*=" czi-"] {
+    font-family: "FontAwesome" !important;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.czi-eye::before { content: "\f06e" !important; }
+.czi-heart::before { content: "\f004" !important; }
+.czi-cart::before { content: "\f07a" !important; }
+.czi-search::before { content: "\f002" !important; }
+.czi-close::before { content: "\f00d" !important; }
+.czi-menu::before { content: "\f0c9" !important; }
+.czi-arrow-right::before { content: "\f061" !important; }
+.czi-arrow-left::before { content: "\f060" !important; }
+.czi-user::before { content: "\f007" !important; }
+.czi-phone::before { content: "\f095" !important; }
+.czi-mail::before { content: "\f0e0" !important; }
+.czi-home::before { content: "\f015" !important; }
+.czi-bell::before { content: "\f0f3" !important; }
+.czi-star::before { content: "\f005" !important; }
+.czi-time::before { content: "\f017" !important; }
+.czi-location::before { content: "\f041" !important; }
+.czi-security::before { content: "\f132" !important; }
+.czi-delivery::before { content: "\f0d1" !important; }
+.czi-support::before { content: "\f0a0" !important; }
+.czi-card::before { content: "\f09d" !important; }
+.czi-bag::before { content: "\f290" !important; }
+.czi-check::before { content: "\f00c" !important; }
+.czi-edit::before { content: "\f044" !important; }
+.czi-add::before { content: "\f067" !important; }
+.czi-settings::before { content: "\f013" !important; }
+
 :root {
     --primary-clr: #3b71de;
 }

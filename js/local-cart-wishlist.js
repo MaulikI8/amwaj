@@ -4,15 +4,25 @@
 (function() {
     window.localProducts = [];
 
-    // Load products database on start
-    fetch('data/products.json')
+    // Load products database on start from backend API
+    fetch('http://localhost:5000/api/v1/products?limit=100')
         .then(res => res.json())
-        .then(data => {
-            window.localProducts = data;
+        .then(res => {
+            window.localProducts = res.data;
             updateNavCart();
             updateWishlistBadges();
         })
-        .catch(err => console.error("Error loading products JSON:", err));
+        .catch(err => {
+            console.error("Error loading backend products, falling back to local static database:", err);
+            // Fallback to static JSON if backend is offline
+            fetch('data/products.json')
+                .then(r => r.json())
+                .then(d => {
+                    window.localProducts = d;
+                    updateNavCart();
+                    updateWishlistBadges();
+                });
+        });
 
     // Cart Helper Functions
     function getCart() {
@@ -321,4 +331,264 @@
         // Open modal
         $('#quick-view').modal('show');
     };
+
+    // Alias for wishlist handler used in product-detail.html
+    window.addToWishlistLocal = function(productId) {
+        window.addWishlist(productId, 'add-wishlist-modal');
+    };
+
+    // Mock search-suggestions endpoint client-side
+    $(function() {
+        if (window.jQuery) {
+            const mockSearch = function(options, successCb, completeCb) {
+                const query = (options.data && options.data.name) ? options.data.name.toLowerCase().trim() : '';
+                const filtered = (window.localProducts || []).filter(p => 
+                    p.name.toLowerCase().includes(query) || 
+                    (p.brand && p.brand.toLowerCase().includes(query)) ||
+                    (p.description && p.description.toLowerCase().includes(query))
+                );
+                
+                let html = '';
+                if (filtered.length === 0) {
+                    html = '<div class="p-3 text-center text-muted small">No products found</div>';
+                } else {
+                    html = '<ul class="list-group list-group-flush list-group-raw m-0 p-0" style="list-style: none;">';
+                    filtered.forEach(p => {
+                        html += `
+                            <li class="p-2 border-bottom hover-bg-light" style="cursor: pointer;" onclick="window.location.href='products.html?product=${encodeURIComponent(p.slug)}'">
+                                <div class="d-flex align-items-center">
+                                    <img src="${p.image}" width="36" height="36" class="mr-2 rounded" style="object-fit: cover;" onerror="this.src='images/image-place-holder.png'">
+                                    <div style="line-height: 1.2;">
+                                        <a href="products.html?product=${encodeURIComponent(p.slug)}" class="small font-weight-semibold text-dark text-truncate d-block" style="max-width: 200px; text-decoration: none;">
+                                            ${p.name}
+                                        </a>
+                                        <span class="small text-primary font-weight-bold">${p.price}</span>
+                                    </div>
+                                </div>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+                
+                setTimeout(() => {
+                    if (successCb) successCb({ result: html });
+                    if (completeCb) completeCb();
+                }, 100);
+            };
+
+            const originalAjax = window.jQuery.ajax;
+            window.jQuery.ajax = function(url, options) {
+                let opts = options;
+                let targetUrl = url;
+                if (typeof url === 'object') {
+                    opts = url;
+                    targetUrl = opts.url;
+                }
+                if (targetUrl === 'searched-products') {
+                    const dfd = window.jQuery.Deferred();
+                    if (opts.beforeSend) opts.beforeSend();
+                    mockSearch(opts, opts.success, () => {
+                        if (opts.complete) opts.complete();
+                        dfd.resolve({ result: '' });
+                    });
+                    return dfd.promise();
+                }
+                return originalAjax.apply(this, arguments);
+            };
+
+            const originalGet = window.jQuery.get;
+            window.jQuery.get = function(url, data, success, dataType) {
+                let opts = {};
+                if (typeof url === 'object') {
+                    opts = url;
+                } else {
+                    opts.url = url;
+                    opts.data = data;
+                    opts.success = success;
+                    opts.dataType = dataType;
+                }
+                if (opts.url === 'searched-products') {
+                    const dfd = window.jQuery.Deferred();
+                    if (opts.beforeSend) opts.beforeSend();
+                    mockSearch(opts, opts.success, () => {
+                        if (opts.complete) opts.complete();
+                        dfd.resolve({ result: '' });
+                    });
+                    return dfd.promise();
+                }
+                return originalGet.apply(this, arguments);
+            };
+        }
+
+        // --- AUTH NAVIGATION & MODAL INTERACTION ---
+        function updateAuthUI() {
+            const token = localStorage.getItem('token');
+            const userRaw = localStorage.getItem('user');
+            
+            if (token && userRaw) {
+                try {
+                    const user = JSON.parse(userRaw);
+                    const authHtml = `
+                        <div class="dropdown-item text-primary font-weight-bold py-2 border-bottom">
+                            Hello, ${user.name}
+                        </div>
+                        <a class="dropdown-item" href="#" id="auth-logout">
+                            <i class="fa fa-sign-out mr-2"></i>Sign out
+                        </a>
+                    `;
+                    $('.__auth-dropdown').html(authHtml);
+                    
+                    // Attach logout handler
+                    $('#auth-logout').on('click', function(e) {
+                        e.preventDefault();
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.reload();
+                    });
+                } catch(e) {
+                    console.error("Auth UI parse error:", e);
+                }
+            } else {
+                // Not logged in
+                const guestHtml = `
+                    <a class="dropdown-item btn-trigger-auth" href="#">
+                        <i class="fa fa-sign-in mr-2"></i> Sign in
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item btn-trigger-auth" href="#">
+                        <i class="fa fa-user-circle mr-2"></i>Sign up
+                    </a>
+                `;
+                $('.__auth-dropdown').html(guestHtml);
+                
+                // Intercept mobile authentication buttons
+                $('a[href*="customer/auth/login"], a[href*="customer/auth/sign-up"], .btn-trigger-auth').on('click', function(e) {
+                    e.preventDefault();
+                    showAuthModal();
+                });
+            }
+        }
+
+        function showAuthModal() {
+            if ($('#loginModal').length === 0) {
+                const modalHtml = `
+                    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 99999;">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                                <div class="modal-header border-0 bg-light py-3">
+                                    <h5 class="modal-title font-weight-bold" style="color: #0f172a;">Sign In / Sign Up</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <ul class="nav nav-tabs border-bottom mb-3" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active font-weight-semibold" data-toggle="tab" href="#modal-login-tab" role="tab">Sign In</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link font-weight-semibold" data-toggle="tab" href="#modal-register-tab" role="tab">Sign Up</a>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content pt-2">
+                                        <div class="tab-pane active" id="modal-login-tab" role="tabpanel">
+                                            <form id="modal-login-form">
+                                                <div class="form-group">
+                                                    <label class="small font-weight-bold text-dark">Email Address</label>
+                                                    <input type="email" id="modal-login-email" class="form-control" placeholder="E.g. customer@example.com" required style="border-radius: 8px;">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="small font-weight-bold text-dark">Password</label>
+                                                    <input type="password" id="modal-login-password" class="form-control" placeholder="••••••••" required style="border-radius: 8px;">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary btn-block mt-4" style="border-radius: 8px;">Log In</button>
+                                            </form>
+                                        </div>
+                                        <div class="tab-pane" id="modal-register-tab" role="tabpanel">
+                                            <form id="modal-register-form">
+                                                <div class="form-group">
+                                                    <label class="small font-weight-bold text-dark">Full Name</label>
+                                                    <input type="text" id="modal-register-name" class="form-control" placeholder="E.g. Maulik Joshi" required style="border-radius: 8px;">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="small font-weight-bold text-dark">Email Address</label>
+                                                    <input type="email" id="modal-register-email" class="form-control" placeholder="E.g. customer@example.com" required style="border-radius: 8px;">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="small font-weight-bold text-dark">Phone Number</label>
+                                                    <input type="text" id="modal-register-phone" class="form-control" placeholder="E.g. +974 5555 1234" style="border-radius: 8px;">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="small font-weight-bold text-dark">Password (min 6 chars)</label>
+                                                    <input type="password" id="modal-register-password" class="form-control" placeholder="••••••••" required style="border-radius: 8px;">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary btn-block mt-4" style="border-radius: 8px;">Create Account</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('body').append(modalHtml);
+
+                // Handle login
+                $('#modal-login-form').on('submit', function(e) {
+                    e.preventDefault();
+                    const email = $('#modal-login-email').val();
+                    const password = $('#modal-login-password').val();
+                    
+                    $.ajax({
+                        url: 'http://localhost:5000/api/v1/auth/login',
+                        method: 'POST',
+                        data: JSON.stringify({ email, password }),
+                        contentType: 'application/json',
+                        success: function(res) {
+                            localStorage.setItem('token', res.data.token);
+                            localStorage.setItem('user', JSON.stringify(res.data.user));
+                            $('#loginModal').modal('hide');
+                            alert('Welcome back, ' + res.data.user.name + '!');
+                            window.location.reload();
+                        },
+                        error: function(err) {
+                            alert(err.responseJSON ? err.responseJSON.message : 'Invalid credentials');
+                        }
+                    });
+                });
+
+                // Handle registration
+                $('#modal-register-form').on('submit', function(e) {
+                    e.preventDefault();
+                    const payload = {
+                        name: $('#modal-register-name').val(),
+                        email: $('#modal-register-email').val(),
+                        phone: $('#modal-register-phone').val(),
+                        password: $('#modal-register-password').val()
+                    };
+
+                    $.ajax({
+                        url: 'http://localhost:5000/api/v1/auth/register',
+                        method: 'POST',
+                        data: JSON.stringify(payload),
+                        contentType: 'application/json',
+                        success: function(res) {
+                            localStorage.setItem('token', res.data.token);
+                            localStorage.setItem('user', JSON.stringify(res.data.user));
+                            $('#loginModal').modal('hide');
+                            alert('Registration successful! Welcome, ' + res.data.user.name + '!');
+                            window.location.reload();
+                        },
+                        error: function(err) {
+                            alert(err.responseJSON ? err.responseJSON.message : 'Registration failed');
+                        }
+                    });
+                });
+            }
+            $('#loginModal').modal('show');
+        }
+
+        updateAuthUI();
+    });
 })();
