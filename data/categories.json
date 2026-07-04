@@ -1,0 +1,85 @@
+[
+    {
+        "id": 1,
+        "name": "Building Materials",
+        "subcategories": [
+            {
+                "id": 6,
+                "name": "Aluminium Door Handles"
+            },
+            {
+                "id": 7,
+                "name": "Concrete Blocks"
+            },
+            {
+                "id": 8,
+                "name": "Dust Extractor"
+            },
+            {
+                "id": 9,
+                "name": "Gypsum Accessories"
+            },
+            {
+                "id": 10,
+                "name": "Steel Bar"
+            },
+            {
+                "id": 11,
+                "name": "Wood & Plywood"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Cement",
+        "subcategories": [
+            {
+                "id": 18,
+                "name": "Rccement"
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Electrical Item",
+        "subcategories": [
+            {
+                "id": 14,
+                "name": "Wire & Cables"
+            },
+            {
+                "id": 15,
+                "name": "Switchgears"
+            },
+            {
+                "id": 16,
+                "name": "Welding Machine"
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "name": "Hardware",
+        "subcategories": []
+    },
+    {
+        "id": 5,
+        "name": "health & Safty Tools",
+        "subcategories": []
+    },
+    {
+        "id": 12,
+        "name": "Shower",
+        "subcategories": []
+    },
+    {
+        "id": 13,
+        "name": "Tools & Equipment",
+        "subcategories": [
+            {
+                "id": 17,
+                "name": "Equipment"
+            }
+        ]
+    }
+]
