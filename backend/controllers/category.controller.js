@@ -24,8 +24,14 @@ const getCategory = async (req, res, next) => {
 
 const createCategory = async (req, res, next) => {
     try {
-        const { name, parent_id, icon, position } = req.body;
+        const { name, parent_id, position } = req.body;
         const slug = createSlug(name);
+        let icon = req.body.icon || null;
+
+        if (req.file) {
+            icon = `/uploads/${req.file.filename}`;
+        }
+
         const category = await Category.create({ name, slug, parent_id, icon, position });
         successResponse(res, { data: category }, 'Category created', 201);
     } catch (err) { next(err); }
@@ -35,8 +41,14 @@ const updateCategory = async (req, res, next) => {
     try {
         const category = await Category.findByPk(req.params.id);
         if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+        
         const updates = { ...req.body };
         if (updates.name) updates.slug = createSlug(updates.name);
+        
+        if (req.file) {
+            updates.icon = `/uploads/${req.file.filename}`;
+        }
+
         await category.update(updates);
         successResponse(res, { data: category }, 'Category updated');
     } catch (err) { next(err); }

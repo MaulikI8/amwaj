@@ -788,16 +788,20 @@
                     <div class="col-md-4 mb-4">
                         <div class="glass-card p-4">
                             <h5 class="mb-4">Create Category</h5>
-                            <form id="category-form">
+                            <form id="category-form" enctype="multipart/form-data">
                                 <div class="form-group mb-3">
                                     <label class="small font-weight-semibold text-dark">Category Name</label>
                                     <input type="text" id="category-name" class="form-control" placeholder="E.g. Electrical Items" required>
                                 </div>
-                                <div class="form-group mb-4">
+                                <div class="form-group mb-3">
                                     <label class="small font-weight-semibold text-dark">Parent Category (Optional)</label>
                                     <select id="category-parent" class="form-control">
                                         <option value="">None (Top-Level Category)</option>
                                     </select>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label class="small font-weight-semibold text-dark">Category Photo</label>
+                                    <input type="file" id="category-image" class="form-control" accept="image/*">
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-block">Save Category</button>
                             </form>
@@ -812,6 +816,7 @@
                                     <thead>
                                         <tr>
                                             <th>ID</th>
+                                            <th>Photo</th>
                                             <th>Name</th>
                                             <th>Slug</th>
                                             <th>Parent ID</th>
@@ -1523,9 +1528,11 @@
                     // Render categories table list
                     let tableHtml = '';
                     list.forEach(cat => {
+                        const img = cat.icon || cat.image || 'images/image-place-holder.png';
                         tableHtml += `
                             <tr>
                                 <td>${cat.id}</td>
+                                <td><img src="${img}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 1px solid #dee2e6;" onerror="this.src='images/image-place-holder.png'"></td>
                                 <td><strong>${cat.name}</strong></td>
                                 <td><code>${cat.slug}</code></td>
                                 <td><span class="badge badge-light">None</span></td>
@@ -1538,10 +1545,12 @@
                         `;
                         const subs = cat.subcategories || cat.children || [];
                         subs.forEach(sub => {
+                            const subImg = sub.icon || sub.image || 'images/image-place-holder.png';
                             tableHtml += `
                                 <tr style="background-color: rgba(0,0,0,0.01);">
                                     <td>${sub.id}</td>
-                                    <td><span class="text-muted pl-3">— ${sub.name}</span></td>
+                                    <td><img src="${subImg}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%; border: 1px solid #dee2e6;" onerror="this.src='images/image-place-holder.png'"></td>
+                                    <td><span class="text-muted pl-2">— ${sub.name}</span></td>
                                     <td><code>${sub.slug}</code></td>
                                     <td><span class="badge badge-secondary">${cat.name} (${cat.id})</span></td>
                                     <td class="text-right">
@@ -1554,24 +1563,29 @@
                         });
                     });
                     
-                    $('#categories-table-body').html(tableHtml || '<tr><td colspan="5" class="text-center text-muted py-3">No categories configured</td></tr>');
+                    $('#categories-table-body').html(tableHtml || '<tr><td colspan="6" class="text-center text-muted py-3">No categories configured</td></tr>');
                 }
             });
         }
 
         $('#category-form').on('submit', function(e) {
             e.preventDefault();
-            const payload = {
-                name: $('#category-name').val(),
-                parent_id: $('#category-parent').val() ? parseInt($('#category-parent').val()) : null
-            };
+            const fd = new FormData();
+            fd.append('name', $('#category-name').val());
+            if ($('#category-parent').val()) {
+                fd.append('parent_id', parseInt($('#category-parent').val()));
+            }
+            if ($('#category-image')[0].files.length > 0) {
+                fd.append('image', $('#category-image')[0].files[0]);
+            }
             
             $.ajax({
                 url: `${API_BASE}/categories`,
                 method: 'POST',
                 headers: getHeaders(),
-                data: JSON.stringify(payload),
-                contentType: 'application/json',
+                data: fd,
+                processData: false,
+                contentType: false,
                 success: function() {
                     showAlert('Category created successfully');
                     $('#category-form')[0].reset();

@@ -656,7 +656,59 @@
             }
             $('#loginModal').modal('show');
         }
- 
+
+        // Global Dynamic Category Loader
+        function loadGlobalCategories() {
+            $.ajax({
+                url: '/api/v1/categories',
+                success: function (res) {
+                    const categories = res.data || res;
+                    const menuContainers = $('.category-menu');
+                    if (!menuContainers.length) return;
+
+                    if (categories.length === 0) {
+                        menuContainers.html('<li class="p-3 text-center text-muted small">No categories configured</li>');
+                        return;
+                    }
+
+                    let html = '';
+                    // Render up to 10 top-level categories
+                    categories.slice(0, 10).forEach(cat => {
+                        if (cat.parent_id) return; // Skip subcategories at root level
+
+                        const subs = cat.subcategories || cat.children || [];
+                        const hasSubs = subs.length > 0;
+                        
+                        html += `
+                            <li class="${hasSubs ? 'has-sub-item' : ''}">
+                                <a href="products.html?id=${cat.id}&amp;data_from=category&amp;page=1">${cat.name} ${hasSubs ? '<i class="czi-arrow-right"></i>' : ''}</a>
+                        `;
+
+                        if (hasSubs) {
+                            html += `
+                                <div class="mega_menu z-2">
+                            `;
+                            subs.forEach(sub => {
+                                html += `
+                                    <div class="mega_menu_inner">
+                                        <h6><a href="products.html?id=${sub.id}&amp;data_from=category&amp;page=1">${sub.name}</a></h6>
+                                    </div>
+                                `;
+                            });
+                            html += `
+                                </div>
+                            `;
+                        }
+                        html += '</li>';
+                    });
+
+                    html += '<li class="text-center"><a href="products.html" class="text-primary font-weight-bold justify-content-center text-capitalize">View all</a></li>';
+                    menuContainers.html(html);
+                }
+            });
+        }
+
         updateAuthUI();
+        loadGlobalCategories();
     });
 })();
