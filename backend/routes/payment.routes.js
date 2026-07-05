@@ -4,6 +4,7 @@ const ctrl = require('../controllers/payment.controller');
 
 router.post('/create-intent', ctrl.createPaymentIntent);
 router.post('/process', ctrl.processPayment);
+router.get('/config', ctrl.getPaymentConfig);
 router.get('/status/:orderId', ctrl.getPaymentStatus);
 router.get('/admin/list', protect, authorize('admin'), ctrl.getAdminPayments);
 

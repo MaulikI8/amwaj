@@ -86,4 +86,12 @@ const getAdminPayments = async (req, res, next) => {
     } catch (err) { next(err); }
 };
 
-module.exports = { createPaymentIntent, processPayment, getPaymentStatus, getAdminPayments };
+const getPaymentConfig = async (req, res, next) => {
+    try {
+        successResponse(res, {
+            publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
+        });
+    } catch (err) { next(err); }
+};
+
+module.exports = { createPaymentIntent, processPayment, getPaymentStatus, getAdminPayments, getPaymentConfig };

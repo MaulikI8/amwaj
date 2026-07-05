@@ -374,51 +374,100 @@
             }
         }
 
+        let isStripeMode = false;
+
         // 2. Stripe Elements Form setup
         function initializeStripe() {
-            // First hit backend to fetch the Stripe Publishable key (mock or fetched from env)
-            // To get this securely, we generate intent or initialize element
-            // We use the stripe instance on check out
-            // Let's load the Stripe Elements layout with a placeholder client key
-            // Stripe client needs to be instantiated. We can use a standard publishable key or retrieve it.
-            // Since we configured STRIPE_PUBLISHABLE_KEY in .env, we can fetch it via api!
-            // Let's fetch publishable key by initiating intent with a draft value or a direct config endpoint!
-            // Wait, we can fetch it dynamically! Or hardcode a placeholder for Elements initialization, 
-            // but fetching dynamically is 100% correct.
-            // Let's create the elements placeholder structure first.
-            // When user submits order, we create the order on backend, get clientSecret, then finalize payment!
-            
-            // Hardcode default key or initialize elements
-            const stripeKey = 'pk_test_51PcxQzF4fE3vJdK9L2U9m8N6f5a3b2c1d0e9f8g7h6i5j4k3l2m1n0o9p8q7r6s5t4u3v2w1x0y9z8a7b6c5d4e3f'; 
-            stripe = Stripe(stripeKey);
-            const elements = stripe.elements();
-            
-            const style = {
-                base: {
-                    color: '#0f172a',
-                    fontFamily: 'Plus Jakarta Sans, sans-serif',
-                    fontSmoothing: 'antialiased',
-                    fontSize: '15px',
-                    '::placeholder': {
-                        color: '#94a3b8'
+            $.ajax({
+                url: `${API_BASE}/payments/config`,
+                success: function(res) {
+                    const stripeKey = res.publishableKey;
+                    const dummyKey = 'pk_test_51PcxQzF4fE3vJdK9L2U9m8N6f5a3b2c1d0e9f8g7h6i5j4k3l2m1n0o9p8q7r6s5t4u3v2w1x0y9z8a7b6c5d4e3f';
+
+                    if (stripeKey && stripeKey !== dummyKey && stripeKey.trim() !== '') {
+                        try {
+                            stripe = Stripe(stripeKey);
+                            const elements = stripe.elements();
+                            
+                            const style = {
+                                base: {
+                                    color: '#0f172a',
+                                    fontFamily: 'Plus Jakarta Sans, sans-serif',
+                                    fontSmoothing: 'antialiased',
+                                    fontSize: '15px',
+                                    '::placeholder': { color: '#94a3b8' }
+                                },
+                                invalid: {
+                                    color: '#ef4444',
+                                    iconColor: '#ef4444'
+                                }
+                            };
+
+                            cardElement = elements.create('card', { style: style, hidePostalCode: true });
+                            cardElement.mount('#card-element');
+
+                            cardElement.on('change', function(event) {
+                                const displayError = document.getElementById('card-errors');
+                                if (event.error) {
+                                    displayError.textContent = event.error.message;
+                                } else {
+                                    displayError.textContent = '';
+                                }
+                            });
+                            
+                            isStripeMode = true;
+                            return;
+                        } catch (err) {
+                            console.warn("Failed to init real Stripe Elements, falling back to mock card form:", err);
+                        }
                     }
+                    
+                    renderMockCardForm();
                 },
-                invalid: {
-                    color: '#ef4444',
-                    iconColor: '#ef4444'
+                error: function() {
+                    renderMockCardForm();
                 }
-            };
+            });
+        }
 
-            cardElement = elements.create('card', { style: style, hidePostalCode: true });
-            cardElement.mount('#card-element');
+        function renderMockCardForm() {
+            isStripeMode = false;
+            // Render high fidelity card fields in place of stripe elements
+            $('#card-element').css({ 'border': 'none', 'padding': '0', 'background': 'transparent' }).html(`
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <input type="text" id="mock-card-name" class="form-control" placeholder="Cardholder Name" required>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <input type="text" id="mock-card-number" class="form-control" placeholder="Card Number (e.g. 4242 4242 4242 4242)" maxlength="19" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <input type="text" id="mock-card-expiry" class="form-control" placeholder="MM / YY" maxlength="7" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <input type="password" id="mock-card-cvc" class="form-control" placeholder="CVC" maxlength="4" required>
+                    </div>
+                </div>
+            `);
+            
+            // Auto format card number input
+            $('#mock-card-number').on('input', function() {
+                let val = this.value.replace(/\D/g, '');
+                let newVal = '';
+                for(let i=0; i < val.length; i++) {
+                    if(i > 0 && i % 4 === 0) newVal += ' ';
+                    newVal += val[i];
+                }
+                this.value = newVal.substring(0, 19);
+            });
 
-            // Handle validation errors
-            cardElement.on('change', function(event) {
-                const displayError = document.getElementById('card-errors');
-                if (event.error) {
-                    displayError.textContent = event.error.message;
+            // Auto format expiry input
+            $('#mock-card-expiry').on('input', function() {
+                let val = this.value.replace(/\D/g, '');
+                if (val.length >= 2) {
+                    this.value = val.substring(0, 2) + ' / ' + val.substring(2, 4);
                 } else {
-                    displayError.textContent = '';
+                    this.value = val;
                 }
             });
         }
@@ -511,7 +560,7 @@
                             // Step C: Confirm payment elements client-side
                             $('#payment-status-message').text('Authorizing secure transaction...').removeClass('text-warning').addClass('text-primary');
 
-                            if (intentRes.is_mock) {
+                            if (!isStripeMode || intentRes.is_mock) {
                                 // Simulate mock payment settlement for development/preview
                                 $('#payment-status-message').text('Simulating test payment settlement...').removeClass('text-warning').addClass('text-success');
                                 setTimeout(function() {
