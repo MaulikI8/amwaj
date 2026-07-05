@@ -3135,8 +3135,9 @@
         }
 
         function renderRelatedCard(product) {
+            const relImg = (product.images && product.images.length > 0) ? product.images[0].url : (product.image || 'images/image-place-holder.png');
             return '<a class="local-related-card" href="product-detail.html?product=' + encodeURIComponent(product.slug || product.id) + '">' +
-                '<img src="' + product.image + '" alt="' + escapeHtml(product.name) + '" onerror="this.src=\'images/image-place-holder.png\'">' +
+                '<img src="' + relImg + '" alt="' + escapeHtml(product.name) + '" onerror="this.src=\'images/image-place-holder.png\'">' +
                 '<div>' +
                 '<div class="local-related-name">' + escapeHtml(product.name) + '</div>' +
                 '<div class="local-stars mb-2">&#9734; &#9734; &#9734; &#9734; &#9734; <span class="text-dark">( 0 )</span></div>' +
@@ -3169,6 +3170,7 @@
             const points = buildDescriptionPoints(product);
             const productId = escapeHtml(product.id || product.numeric_id || product.slug);
             const priceNumber = parsePrice(product.price);
+            const productImg = (product.images && product.images.length > 0) ? product.images[0].url : (product.image || 'images/image-place-holder.png');
 
             container.classList.add('local-product-page');
             container.innerHTML =
@@ -3186,9 +3188,9 @@
                 '<div class="local-product-gallery">' +
                 '<div class="local-main-image">' +
                 '<button class="local-share-btn" type="button" aria-label="Share product"><i class="fa fa-share-alt"></i></button>' +
-                '<img src="' + product.image + '" alt="' + escapeHtml(product.name) + '" onerror="this.src=\'images/image-place-holder.png\'">' +
+                '<img src="' + productImg + '" alt="' + escapeHtml(product.name) + '" onerror="this.src=\'images/image-place-holder.png\'">' +
                 '</div></div>' +
-                '<div class="local-thumb"><img src="' + product.image + '" alt="' + escapeHtml(product.name) + '" onerror="this.src=\'images/image-place-holder.png\'"></div>' +
+                '<div class="local-thumb"><img src="' + productImg + '" alt="' + escapeHtml(product.name) + '" onerror="this.src=\'images/image-place-holder.png\'"></div>' +
                 '</div>' +
                 '<div class="local-product-info">' +
                 '<h1 class="local-product-title">' + escapeHtml(product.name) + '</h1>' +
@@ -3311,16 +3313,31 @@
         }
 
         fetch('http://localhost:5000/api/v1/products?limit=100')
-            .then(res => res.json())
-            .then(res => res.data || res)
+            .then(res => {
+                if (!res.ok) throw new Error('API response status not OK');
+                return res.json();
+            })
+            .then(res => {
+                if (res && Array.isArray(res.data)) return res.data;
+                throw new Error('API data is not an array');
+            })
             .catch(() => {
                 return fetch('data/products.json').then(r => r.json());
             })
             .then(products => {
+                if (!Array.isArray(products)) {
+                    throw new Error('Catalog is not an array');
+                }
                 const urlParams = new URLSearchParams(window.location.search);
                 const productSlug = urlParams.get('product');
                 
-                const p = products.find(prod => prod.slug === productSlug || prod.id === productSlug);
+                const p = products.find(prod => {
+                    const target = String(productSlug || '').toLowerCase().trim();
+                    const prodSlug = String(prod.slug || '').toLowerCase().trim();
+                    const prodId = String(prod.id || '').toLowerCase().trim();
+                    return prodSlug === target || prodId === target;
+                });
+                
                 if (!p) {
                     document.getElementById('product-detail-container').innerHTML = `
                         <div class="col-12 text-center py-5">
@@ -3334,6 +3351,16 @@
                 
                 document.title = p.name + " | AMWAJ ALMSELA";
                 renderProductDetail(p, products);
+            })
+            .catch(err => {
+                console.error('Failed to render product page:', err);
+                document.getElementById('product-detail-container').innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <h2 class="h4 text-danger">Error Loading Page</h2>
+                        <p class="text-muted">An error occurred while fetching product details. Please try again later.</p>
+                        <a href="index.html" class="btn btn-primary mt-3">Back to Home</a>
+                    </div>
+                `;
             });
     </script>
     <script src="js/premium-interactions.js"></script>
