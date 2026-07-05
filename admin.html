@@ -613,9 +613,14 @@
             <div id="tab-products" class="tab-content">
                 <div class="page-header">
                     <h2 class="page-title">Products Inventory</h2>
-                    <button class="btn btn-primary" id="btn-add-product" data-toggle="modal" data-target="#product-modal">
-                        <i class="fa fa-plus mr-2"></i> Create Product
-                    </button>
+                    <div>
+                        <button class="btn btn-outline-success mr-2" data-toggle="modal" data-target="#csv-import-modal">
+                            <i class="fa fa-upload mr-1"></i> Import CSV
+                        </button>
+                        <button class="btn btn-primary" id="btn-add-product" data-toggle="modal" data-target="#product-modal">
+                            <i class="fa fa-plus mr-2"></i> Create Product
+                        </button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table mb-0">
@@ -834,6 +839,78 @@
             </div>
 
         </main>
+    </div>
+
+    <!-- CSV Import Modal -->
+    <div class="modal fade" id="csv-import-modal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content glass-card border-0">
+                <div class="modal-header py-4 px-4 border-0">
+                    <h4 class="modal-title"><i class="fa fa-upload mr-2" style="color: #28a745;"></i>Import Products from CSV</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <!-- Step 1: Upload -->
+                    <div id="csv-step-upload">
+                        <div class="text-center mb-4 p-4" style="background: rgba(40,167,69,0.05); border-radius: 16px; border: 2px dashed #28a745;">
+                            <i class="fa fa-file-text-o" style="font-size: 48px; color: #28a745; display: block; margin-bottom: 12px;"></i>
+                            <h5 class="mb-2">Upload your CSV file</h5>
+                            <p class="text-muted small mb-3">Supported columns: name, description, price, discount_price, sku, category, quantity, image_url, featured, best_selling, top_rated</p>
+                            <input type="file" id="csv-file-input" accept=".csv" class="form-control" style="max-width: 400px; margin: 0 auto; border-radius: 12px;">
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="font-weight-bold"><i class="fa fa-info-circle mr-1 text-primary"></i> CSV Column Guide</h6>
+                            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered small mb-0">
+                                    <thead class="bg-light">
+                                        <tr><th>Column</th><th>Required</th><th>Description</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td><code>name</code></td><td><span class="badge badge-danger">Required</span></td><td>Product name</td></tr>
+                                        <tr><td><code>price</code></td><td><span class="badge badge-danger">Required</span></td><td>Price (number, e.g. 29.99)</td></tr>
+                                        <tr><td><code>description</code></td><td>Optional</td><td>Product description</td></tr>
+                                        <tr><td><code>discount_price</code></td><td>Optional</td><td>Sale/discount price</td></tr>
+                                        <tr><td><code>sku</code></td><td>Optional</td><td>Unique SKU code (used for update matching)</td></tr>
+                                        <tr><td><code>category</code></td><td>Optional</td><td>Category name (auto-created if new)</td></tr>
+                                        <tr><td><code>quantity</code></td><td>Optional</td><td>Stock quantity (default: 0)</td></tr>
+                                        <tr><td><code>image_url</code></td><td>Optional</td><td>Full URL to product image</td></tr>
+                                        <tr><td><code>featured</code></td><td>Optional</td><td>true/false or 1/0</td></tr>
+                                        <tr><td><code>best_selling</code></td><td>Optional</td><td>true/false or 1/0</td></tr>
+                                        <tr><td><code>top_rated</code></td><td>Optional</td><td>true/false or 1/0</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="#" id="btn-download-csv-template" class="text-success small">
+                                <i class="fa fa-download mr-1"></i> Download template CSV
+                            </a>
+                            <button class="btn btn-success px-4" id="btn-start-csv-import" disabled>
+                                <i class="fa fa-cloud-upload mr-1"></i> Start Import
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Progress -->
+                    <div id="csv-step-progress" style="display: none;" class="text-center py-4">
+                        <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="sr-only">Importing...</span>
+                        </div>
+                        <h5>Importing products...</h5>
+                        <p class="text-muted">Please wait while your CSV is being processed. Do not close this window.</p>
+                    </div>
+
+                    <!-- Step 3: Results -->
+                    <div id="csv-step-results" style="display: none;">
+                        <div id="csv-results-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Product editor Modal -->
@@ -1150,6 +1227,110 @@
                 }
             });
         }
+
+        // CSV Import logic
+        $('#csv-file-input').on('change', function() {
+            const hasFile = this.files && this.files.length > 0;
+            $('#btn-start-csv-import').prop('disabled', !hasFile);
+        });
+
+        $('#btn-download-csv-template').on('click', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: `${API_BASE}/admin/import/csv-template`,
+                headers: getHeaders(),
+                xhrFields: { responseType: 'blob' },
+                success: function(blob) {
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = 'amwaj-product-import-template.csv';
+                    link.click();
+                },
+                error: function() {
+                    showAlert('Failed to download template', 'danger');
+                }
+            });
+        });
+
+        $('#btn-start-csv-import').on('click', function() {
+            const files = $('#csv-file-input')[0].files;
+            if (!files || files.length === 0) return;
+
+            const fd = new FormData();
+            fd.append('csv', files[0]);
+
+            // Switch to progress view
+            $('#csv-step-upload').hide();
+            $('#csv-step-progress').show();
+
+            $.ajax({
+                url: `${API_BASE}/admin/import/csv`,
+                method: 'POST',
+                headers: getHeaders(),
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    $('#csv-step-progress').hide();
+                    $('#csv-step-results').show();
+
+                    let errorsHtml = '';
+                    if (res.data.errors && res.data.errors.length > 0) {
+                        errorsHtml = `
+                            <div class="alert alert-warning mt-3 p-3" style="border-radius: 12px; max-height: 200px; overflow-y: auto;">
+                                <h6 class="font-weight-bold mb-2 text-warning"><i class="fa fa-exclamation-triangle"></i> Import Notices/Errors:</h6>
+                                <ul class="pl-3 mb-0 small">
+                                    ${res.data.errors.map(err => `<li>${err}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+
+                    $('#csv-results-content').html(`
+                        <div class="alert alert-success p-3 text-center mb-3" style="border-radius: 12px;">
+                            <i class="fa fa-check-circle" style="font-size: 32px; color: #28a745; display: block; margin-bottom: 8px;"></i>
+                            <h5 class="mb-1">Import Completed!</h5>
+                            <p class="mb-0">${res.message}</p>
+                        </div>
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <div class="p-2 border rounded" style="background: rgba(40,167,69,0.02);">
+                                    <h4 class="font-weight-bold text-success">${res.data.created}</h4>
+                                    <span class="small text-muted">Created</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 border rounded" style="background: rgba(0,123,255,0.02);">
+                                    <h4 class="font-weight-bold text-primary">${res.data.updated}</h4>
+                                    <span class="small text-muted">Updated</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${errorsHtml}
+                        <button class="btn btn-primary btn-block mt-3" style="border-radius: 12px;" onclick="$('#csv-import-modal').modal('hide');">Done & Close</button>
+                    `);
+
+                    // Refresh products table immediately
+                    loadProducts();
+                },
+                error: function(err) {
+                    $('#csv-step-progress').hide();
+                    $('#csv-step-upload').show();
+                    const msg = err.responseJSON ? err.responseJSON.message : 'Import failed';
+                    showAlert(msg, 'danger');
+                }
+            });
+        });
+
+        // Reset CSV modal step on modal close
+        $('#csv-import-modal').on('hidden.bs.modal', function () {
+            $('#csv-file-input').val('');
+            $('#btn-start-csv-import').prop('disabled', true);
+            $('#csv-step-upload').show();
+            $('#csv-step-progress').hide();
+            $('#csv-step-results').hide();
+            $('#csv-results-content').empty();
+        });
 
         // Add Product Form
         $('#btn-add-product').on('click', function() {

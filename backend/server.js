@@ -221,6 +221,7 @@ app.use('/api/v1/banners', require('./routes/banner.routes'));
 app.use('/api/v1/blogs', require('./routes/blog.routes'));
 app.use('/api/v1/admin/analytics', require('./routes/analytics.routes'));
 app.use('/api/v1/settings', require('./routes/settings.routes'));
+app.use('/api/v1/admin/import', require('./routes/import.routes'));
 
 // ── Clean URL & HTML Extension Front-End Routes ──
 app.get(['/home', '/index.html'], (req, res) => {
