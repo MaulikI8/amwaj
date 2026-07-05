@@ -27,9 +27,12 @@ if (process.env.DB_DIALECT && process.env.DB_DIALECT !== 'sqlite') {
         }
     );
 } else {
+    const storagePath = process.env.VERCEL
+        ? '/tmp/database.sqlite'
+        : path.join(__dirname, '..', 'database.sqlite');
     sequelize = new Sequelize({
         dialect: 'sqlite',
-        storage: path.join(__dirname, '..', 'database.sqlite'),
+        storage: storagePath,
         logging: false,
         define: {
             timestamps: true,

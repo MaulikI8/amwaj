@@ -881,13 +881,13 @@
         if (!grid || !titleEl) return;
 
         Promise.all([
-            fetch('http://localhost:5000/api/v1/categories')
+            fetch('/api/v1/categories')
                 .then(function (res) { return res.json(); })
                 .then(function (res) { return res.data || res; })
                 .catch(function () {
                     return fetch('data/categories.json').then(function (r) { return r.json(); });
                 }),
-            fetch('http://localhost:5000/api/v1/products?limit=100')
+            fetch('/api/v1/products?limit=100')
                 .then(function (res) { return res.json(); })
                 .then(function (res) { return res.data || res; })
                 .catch(function () {

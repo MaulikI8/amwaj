@@ -5,7 +5,7 @@
     window.localProducts = [];
 
     // Load products database on start from backend API
-    fetch('http://localhost:5000/api/v1/products?limit=100')
+    fetch('/api/v1/products?limit=100')
         .then(res => res.json())
         .then(res => {
             window.localProducts = res.data;
@@ -579,7 +579,7 @@
                     submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-2"></i>Verifying...');
                     
                     $.ajax({
-                        url: 'http://localhost:5000/api/v1/auth/login',
+                        url: '/api/v1/auth/login',
                         method: 'POST',
                         data: JSON.stringify({ email, password }),
                         contentType: 'application/json',
@@ -622,7 +622,7 @@
                     submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-2"></i>Registering...');
  
                     $.ajax({
-                        url: 'http://localhost:5000/api/v1/auth/register',
+                        url: '/api/v1/auth/register',
                         method: 'POST',
                         data: JSON.stringify(payload),
                         contentType: 'application/json',

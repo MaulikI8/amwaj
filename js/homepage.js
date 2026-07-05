@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:5000/api/v1';
+    const API_BASE = '/api/v1';
 
     $(document).ready(function () {
         loadDynamicSidebarCategories();
