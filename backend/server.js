@@ -72,7 +72,76 @@ const swaggerOptions = {
 const specs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
-// ── Mount Routes ──
+// ── Serve Static Assets (no DB needed) ──
+app.use(express.static(path.join(__dirname, '..'), {
+    etag: false,
+    maxAge: 0,
+    setHeaders: (res) => {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    }
+}));
+
+// ── Database Initialization (lazy, runs once) ──
+let dbInitPromise = null;
+
+function initializeDatabase() {
+    if (!dbInitPromise) {
+        dbInitPromise = (async () => {
+            await sequelize.authenticate();
+            console.log('✅ Database connection established successfully.');
+
+            await sequelize.sync();
+            console.log('✅ Database tables synchronized.');
+
+            // Seed default Admin role & User if empty
+            const roleCount = await Role.count();
+            let adminRole;
+            if (roleCount === 0) {
+                adminRole = await Role.create({
+                    name: 'admin',
+                    permissions: ['all']
+                });
+                await Role.create({
+                    name: 'customer',
+                    permissions: []
+                });
+                console.log('✅ Default Roles created.');
+            } else {
+                adminRole = await Role.findOne({ where: { name: 'admin' } });
+            }
+
+            const userCount = await User.count();
+            if (userCount === 0 && adminRole) {
+                const adminEmail = process.env.ADMIN_EMAIL || 'admin@amwaj.com';
+                const adminPass = process.env.ADMIN_PASSWORD || 'admin123@';
+                const adminName = process.env.ADMIN_NAME || 'Super Admin';
+
+                await User.create({
+                    name: adminName,
+                    email: adminEmail,
+                    password: adminPass,
+                    role_id: adminRole.id,
+                    email_verified_at: new Date()
+                });
+                console.log(`✅ Seeded default admin account: ${adminEmail}`);
+            }
+        })();
+    }
+    return dbInitPromise;
+}
+
+// Middleware: wait for DB to be ready before handling any request
+app.use(async (req, res, next) => {
+    try {
+        await initializeDatabase();
+        next();
+    } catch (err) {
+        console.error('❌ Database init failed:', err.message);
+        res.status(500).json({ success: false, message: 'Database initialization failed' });
+    }
+});
+
+// ── Mount Routes (AFTER the DB-wait middleware) ──
 app.use('/api/v1/auth', require('./routes/auth.routes'));
 app.use('/api/v1/products', require('./routes/product.routes'));
 app.use('/api/v1/categories', require('./routes/category.routes'));
@@ -91,15 +160,6 @@ app.use('/api/v1/banners', require('./routes/banner.routes'));
 app.use('/api/v1/blogs', require('./routes/blog.routes'));
 app.use('/api/v1/admin/analytics', require('./routes/analytics.routes'));
 app.use('/api/v1/settings', require('./routes/settings.routes'));
-
-// ── Serve Static Assets ──
-app.use(express.static(path.join(__dirname, '..'), {
-    etag: false,
-    maxAge: 0,
-    setHeaders: (res) => {
-        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    }
-}));
 
 // ── Clean URL Front-End Routes ──
 app.get('/home', (req, res) => {
@@ -138,60 +198,20 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-// ── Server Start ──
+// ── Server Start (local dev only) ──
 const PORT = process.env.PORT || 5000;
 
-sequelize.authenticate()
-    .then(async () => {
-        console.log('✅ Database connection established successfully.');
-        
-        // Synchronize all database tables
-        await sequelize.sync();
-        console.log('✅ Database tables synchronized.');
-        
-        // Seed default Admin role & User if empty
-        const roleCount = await Role.count();
-        let adminRole;
-        if (roleCount === 0) {
-            adminRole = await Role.create({
-                name: 'admin',
-                permissions: ['all']
-            });
-            await Role.create({
-                name: 'customer',
-                permissions: []
-            });
-            console.log('✅ Default Roles created.');
-        } else {
-            adminRole = await Role.findOne({ where: { name: 'admin' } });
-        }
-
-        const userCount = await User.count();
-        if (userCount === 0 && adminRole) {
-            const adminEmail = process.env.ADMIN_EMAIL || 'admin@amwaj.com';
-            const adminPass = process.env.ADMIN_PASSWORD || 'admin123@';
-            const adminName = process.env.ADMIN_NAME || 'Super Admin';
-
-            await User.create({
-                name: adminName,
-                email: adminEmail,
-                password: adminPass,
-                role_id: adminRole.id,
-                email_verified_at: new Date()
-            });
-            console.log(`✅ Empty DB detected. Seeded default admin account: ${adminEmail}`);
-        }
-
-        if (!process.env.VERCEL) {
+if (!process.env.VERCEL) {
+    initializeDatabase()
+        .then(() => {
             app.listen(PORT, () => {
-                console.log(`🚀 Server running in development mode on port ${PORT}`);
+                console.log(`🚀 Server running on port ${PORT}`);
                 console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
             });
-        }
-    })
-    .catch(err => {
-        console.error('❌ Unable to connect to the database:', err.message);
-        // Do not crash Vercel build/import process on database connection issues
-    });
+        })
+        .catch(err => {
+            console.error('❌ Unable to start server:', err.message);
+        });
+}
 
 module.exports = app;
