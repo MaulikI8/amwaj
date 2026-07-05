@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | AMWAJ ALMSELA</title>
+    <meta name="description" content="Learn more about AMWAJ ALMSELA TRADING AND CONTRACTING, our mission, vision, and commitment to quality and service.">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="css/theme.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/premium-polish.css">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .about-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 16px;
+        }
+
+        .about-card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            padding: 40px;
+        }
+
+        .about-header {
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 24px;
+            margin-bottom: 30px;
+        }
+
+        .about-header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: #1b7fed;
+        }
+
+        .about-header p {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 0;
+        }
+
+        .about-section {
+            margin-bottom: 28px;
+        }
+
+        .about-section h4 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .about-section h4 i {
+            color: #1b7fed;
+            font-size: 16px;
+        }
+
+        .about-section p, .about-section li {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .about-section ul {
+            padding-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .about-section li {
+            margin-bottom: 8px;
+        }
+
+        .contact-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .contact-box p {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .contact-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #1b7fed;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header bar -->
+    <header class="box-shadow-sm sticky-top bg-white">
+        <div class="topbar-container bg-dark text-white py-2">
+            <div class="container d-flex justify-content-between align-items-center">
+                <span class="small">Amwaj Almesela E-commerce Platform</span>
+                <a href="/admin" class="text-white small text-decoration-none"><i class="fa fa-gears mr-1"></i>Admin Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="container py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <!-- Brand logo -->
+                <a href="/home" class="navbar-brand d-flex align-items-center font-weight-bold" style="font-size: 22px; color: #1b7fed;">
+                    <i class="fa fa-cubes mr-2"></i>Amwaj Store
+                </a>
+
+                <!-- Nav options -->
+                <div class="d-flex align-items-center">
+                    <a href="/products" class="btn btn-link text-dark font-weight-semibold mr-3">All Products</a>
+                    
+                    <div id="cart_items" class="d-flex align-items-center">
+                        <a class="navbar-tool-icon-box bg-secondary mr-3" href="/wishlists" style="position: relative;">
+                            <span class="navbar-tool-label countWishlist">0</span>
+                            <i class="navbar-tool-icon czi-heart"></i>
+                        </a>
+                        <a class="navbar-tool-icon-box bg-secondary" href="/cart" style="position: relative;">
+                            <span class="navbar-tool-label" id="header-cart-badge">0</span>
+                            <i class="navbar-tool-icon czi-cart"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="about-container">
+        <!-- Back Link -->
+        <a href="/home" class="back-link">
+            <i class="fa fa-arrow-left"></i> Back to Store
+        </a>
+
+        <!-- About Card -->
+        <div class="about-card">
+            <div class="about-header">
+                <h1>About Us</h1>
+                <p>Welcome to AMWAJ ALMSELA TRADING AND CONTRACTING</p>
+            </div>
+
+            <div class="about-section">
+                <p>Welcome to <strong>AMWAJ ALMSELA TRADING AND CONTRACTING</strong>, your trusted online destination for quality products and exceptional service. Founded with a vision to simplify shopping, we strive to create a seamless and enjoyable experience for our customers worldwide.</p>
+            </div>
+
+            <div class="about-section">
+                <h4><i class="fa fa-users"></i> Who We Are</h4>
+                <p>At <strong>AMWAJ ALMSELA TRADING AND CONTRACTING</strong>, we believe shopping should be easy, convenient, and fun. Our team of dedicated professionals works tirelessly to curate a wide range of high-quality products to meet your needs and preferences. From everyday essentials to unique finds, we are committed to delivering value, reliability, and style.</p>
+            </div>
+
+            <div class="about-section">
+                <h4><i class="fa fa-rocket"></i> Our Mission</h4>
+                <p>Our mission is simple: to make shopping effortless while providing outstanding customer service. We aim to offer:</p>
+                <ul>
+                    <li>A diverse selection of products to suit every lifestyle.</li>
+                    <li>Competitive pricing without compromising on quality.</li>
+                    <li>A secure and user-friendly online platform.</li>
+                </ul>
+            </div>
+
+            <div class="about-section">
+                <h4><i class="fa fa-star"></i> What Sets Us Apart</h4>
+                <ul>
+                    <li><strong>Customer-Centric Approach:</strong> At AMWAJ ALMSELA TRADING AND CONTRACTING, our customers are at the heart of everything we do. We listen to your feedback, adapt to your needs, and go the extra mile to exceed your expectations.</li>
+                    <li><strong>Quality Assurance:</strong> Every product we offer is carefully sourced and inspected to ensure it meets our high standards.</li>
+                    <li><strong>Fast and Reliable Service:</strong> With efficient order processing, secure payment options, and reliable shipping partners, we ensure your purchases are delivered on time and in perfect condition.</li>
+                    <li><strong>Sustainability Commitment:</strong> We are committed to reducing our environmental footprint by adopting sustainable practices in packaging and operations wherever possible.</li>
+                </ul>
+            </div>
+
+            <div class="about-section">
+                <h4><i class="fa fa-eye"></i> Our Vision</h4>
+                <p>We envision a world where shopping is more than just a transaction—it’s an experience that brings joy, convenience, and satisfaction. Our goal is to build lasting relationships with our customers by offering products and services that make life simpler and more fulfilling.</p>
+            </div>
+
+            <div class="about-section">
+                <h4><i class="fa fa-question-circle"></i> Why Choose AMWAJ ALMSELA TRADING AND CONTRACTING?</h4>
+                <ul>
+                    <li><strong>Convenience:</strong> Shop from the comfort of your home with easy navigation and multiple payment options.</li>
+                    <li><strong>Variety:</strong> Explore a growing catalog of products tailored to your needs.</li>
+                    <li><strong>Trust:</strong> Enjoy secure transactions and a commitment to transparency and integrity.</li>
+                </ul>
+            </div>
+
+            <div class="about-section">
+                <h4><i class="fa fa-phone"></i> Connect With Us</h4>
+                <p>We value your feedback and love hearing from our customers. If you have questions, suggestions, or simply want to say hello, feel free to reach out:</p>
+                <div class="contact-box">
+                    <p><strong>Email:</strong> <a href="mailto:info@amwajalmsela.org">info@amwajalmsela.org</a></p>
+                    <p><strong>Phone:</strong> +974 55576933</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0 small">Copyright &copy; 2026 Amwaj Almesela. All Rights Reserved.</p>
+            <div class="mt-2">
+                <a href="/about-us" class="text-white-50 mx-2 small text-decoration-none">About Us</a>
+                <a href="#" class="text-white-50 mx-2 small text-decoration-none">Terms & Conditions</a>
+                <a href="#" class="text-white-50 mx-2 small text-decoration-none">Privacy Policy</a>
+                <a href="/refund-policy" class="text-white-50 mx-2 small text-decoration-none">Refund Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/jquery-2.2.4.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/local-cart-wishlist.js"></script>
+</body>
+</html>

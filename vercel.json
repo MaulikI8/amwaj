@@ -108,6 +108,14 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/about-us.html",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/about-us",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/",
       "dest": "backend/server.js"
     },
