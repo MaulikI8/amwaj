@@ -3,7 +3,24 @@ const path = require('path');
 
 let sequelize;
 
-if (process.env.DB_DIALECT && process.env.DB_DIALECT !== 'sqlite') {
+if (process.env.POSTGRES_URL || process.env.DATABASE_URL) {
+    const connectionUri = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    sequelize = new Sequelize(connectionUri, {
+        dialect: 'postgres',
+        logging: false,
+        define: {
+            timestamps: true,
+            underscored: true,
+            freezeTableName: true
+        },
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false
+            }
+        }
+    });
+} else if (process.env.DB_DIALECT && process.env.DB_DIALECT !== 'sqlite') {
     sequelize = new Sequelize(
         process.env.DB_NAME,
         process.env.DB_USER,
