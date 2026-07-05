@@ -116,6 +116,22 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/cancellation-policy.html",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/cancellation-policy",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/return-policy.html",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/return-policy",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/",
       "dest": "backend/server.js"
     },
