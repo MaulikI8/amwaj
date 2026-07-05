@@ -161,32 +161,32 @@ app.use('/api/v1/blogs', require('./routes/blog.routes'));
 app.use('/api/v1/admin/analytics', require('./routes/analytics.routes'));
 app.use('/api/v1/settings', require('./routes/settings.routes'));
 
-// ── Clean URL Front-End Routes ──
-app.get('/home', (req, res) => {
+// ── Clean URL & HTML Extension Front-End Routes ──
+app.get(['/home', '/index.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
-app.get('/products', (req, res) => {
+app.get(['/products', '/products.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'products.html'));
 });
 
-app.get('/product', (req, res) => {
+app.get(['/product', '/product-detail.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'product-detail.html'));
 });
 
-app.get('/admin', (req, res) => {
+app.get(['/admin', '/admin.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'admin.html'));
 });
 
-app.get('/cart', (req, res) => {
+app.get(['/cart', '/cart.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'cart.html'));
 });
 
-app.get('/checkout', (req, res) => {
+app.get(['/checkout', '/checkout.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'checkout.html'));
 });
 
-app.get('/wishlists', (req, res) => {
+app.get(['/wishlists', '/wishlists.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'wishlists.html'));
 });
 

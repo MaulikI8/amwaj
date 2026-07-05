@@ -40,7 +40,19 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/index.html",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/products.html",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/products",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/product-detail.html",
       "dest": "backend/server.js"
     },
     {
@@ -48,7 +60,15 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/admin.html",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/admin",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/cart.html",
       "dest": "backend/server.js"
     },
     {
@@ -56,7 +76,15 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/checkout.html",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/checkout",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/wishlists.html",
       "dest": "backend/server.js"
     },
     {
