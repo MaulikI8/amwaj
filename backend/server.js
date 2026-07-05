@@ -115,25 +115,34 @@ function initializeDatabase() {
                 const adminPass = process.env.ADMIN_PASSWORD || 'admin123@';
                 const adminName = process.env.ADMIN_NAME || 'Super Admin';
 
-                // Find or create admin user by email
-                const [adminUser, created] = await User.findOrCreate({
-                    where: { email: adminEmail },
-                    defaults: {
+                const bcrypt = require('bcryptjs');
+                const salt = await bcrypt.genSalt(10);
+                const hashedPass = await bcrypt.hash(adminPass, salt);
+
+                // Find admin user by email
+                let adminUser = await User.findOne({ where: { email: adminEmail } });
+
+                if (!adminUser) {
+                    // Create admin, bypassing hooks to avoid double-hashing
+                    adminUser = await User.create({
                         name: adminName,
-                        password: adminPass,
+                        email: adminEmail,
+                        password: hashedPass,
                         role_id: adminRole.id,
                         email_verified_at: new Date()
-                    }
-                });
-
-                if (!created) {
-                    // Ensure password and role are synchronized with current env variables
-                    adminUser.password = adminPass;
-                    adminUser.role_id = adminRole.id;
-                    await adminUser.save();
-                    console.log(`✅ Admin account verified and synchronized: ${adminEmail}`);
-                } else {
+                    }, { hooks: false });
                     console.log(`✅ Seeded default admin account: ${adminEmail}`);
+                } else {
+                    // Update admin, bypassing hooks to enforce exact single hashing
+                    await User.update({
+                        name: adminName,
+                        password: hashedPass,
+                        role_id: adminRole.id
+                    }, {
+                        where: { id: adminUser.id },
+                        hooks: false
+                    });
+                    console.log(`✅ Admin account verified and synchronized: ${adminEmail}`);
                 }
             }
         })();
