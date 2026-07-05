@@ -159,7 +159,46 @@ app.use(async (req, res, next) => {
         next();
     } catch (err) {
         console.error('❌ Database init failed:', err.message);
-        res.status(500).json({ success: false, message: 'Database initialization failed' });
+        res.status(500).json({ success: false, message: 'Database initialization failed', error: err.message });
+    }
+});
+
+// TEMPORARY DEBUG ENDPOINT - remove after fixing login
+app.get('/api/v1/debug/health', async (req, res) => {
+    try {
+        const bcrypt = require('bcryptjs');
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@amwaj.com';
+        const adminPass = process.env.ADMIN_PASSWORD || 'admin123@';
+
+        const roleCount = await Role.count();
+        const userCount = await User.count();
+        const adminRole = await Role.findOne({ where: { name: 'admin' } });
+        const adminUser = await User.findOne({ where: { email: adminEmail } });
+
+        let passwordCheck = null;
+        if (adminUser) {
+            passwordCheck = await bcrypt.compare(adminPass, adminUser.password);
+        }
+
+        res.json({
+            success: true,
+            debug: {
+                dbConnected: true,
+                roleCount,
+                userCount,
+                adminRoleExists: !!adminRole,
+                adminRoleId: adminRole ? adminRole.id : null,
+                adminUserExists: !!adminUser,
+                adminUserRoleId: adminUser ? adminUser.role_id : null,
+                adminPasswordHashLength: adminUser ? adminUser.password.length : null,
+                adminPasswordHashPrefix: adminUser ? adminUser.password.substring(0, 7) : null,
+                passwordMatchesEnv: passwordCheck,
+                envAdminEmail: adminEmail,
+                envAdminPass: adminPass ? `${adminPass.substring(0, 3)}***` : null
+            }
+        });
+    } catch (err) {
+        res.json({ success: false, error: err.message, stack: err.stack });
     }
 });
 
