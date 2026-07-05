@@ -256,6 +256,10 @@ app.get(['/profile', '/profile.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'profile.html'));
 });
 
+app.get(['/refund-policy', '/refund-policy.html'], (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'refund-policy.html'));
+});
+
 // Root fallback redirects to /home
 app.get('/', (req, res) => {
     res.redirect('/home');
