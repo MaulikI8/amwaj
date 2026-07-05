@@ -93,21 +93,23 @@ function initializeDatabase() {
             await sequelize.sync();
             console.log('✅ Database tables synchronized.');
 
-            // Seed default Admin role & User if empty
-            const roleCount = await Role.count();
-            let adminRole;
-            if (roleCount === 0) {
+            // Seed roles individually if they don't exist
+            let adminRole = await Role.findOne({ where: { name: 'admin' } });
+            if (!adminRole) {
                 adminRole = await Role.create({
                     name: 'admin',
                     permissions: ['all']
                 });
+                console.log('✅ Admin Role created.');
+            }
+
+            let customerRole = await Role.findOne({ where: { name: 'customer' } });
+            if (!customerRole) {
                 await Role.create({
                     name: 'customer',
                     permissions: []
                 });
-                console.log('✅ Default Roles created.');
-            } else {
-                adminRole = await Role.findOne({ where: { name: 'admin' } });
+                console.log('✅ Customer Role created.');
             }
 
             if (adminRole) {
