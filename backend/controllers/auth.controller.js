@@ -58,22 +58,28 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+        console.log(`[Login Debug] Login request received for email: "${email}"`);
 
         const user = await User.findOne({
-            where: { email },
+            where: { email: email ? email.trim().toLowerCase() : '' },
             include: [{ model: Role, as: 'role' }]
         });
 
         if (!user) {
+            console.log(`[Login Debug] User not found in DB for email: "${email}"`);
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
+        console.log(`[Login Debug] User found in DB. Hashed password in DB: "${user.password}"`);
         const isMatch = await user.matchPassword(password);
+        console.log(`[Login Debug] Password match result: ${isMatch}`);
+
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
         if (!user.is_active) {
+            console.log(`[Login Debug] User is inactive`);
             return res.status(401).json({ success: false, message: 'Account deactivated' });
         }
 
