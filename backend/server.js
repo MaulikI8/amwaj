@@ -9,6 +9,13 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const { rateLimit } = require('express-rate-limit');
 
+// Force Vercel bundler to include database drivers
+try {
+    require('pg');
+} catch (e) {
+    // Ignore locally if not needed yet
+}
+
 // Load environment variables
 dotenv.config();
 
