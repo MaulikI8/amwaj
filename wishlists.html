@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist | AMWAJ ALMSELA</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="css/theme.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/toastr.css">
+    <link rel="stylesheet" href="css/premium-polish.css">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .wishlist-card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            margin-bottom: 30px;
+        }
+
+        .wishlist-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #f1f5f9;
+            background: #fff;
+            margin-bottom: 16px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .wishlist-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
+            border-color: #e2e8f0;
+        }
+
+        .wishlist-item-img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+            padding: 8px;
+        }
+
+        .wishlist-item-info {
+            flex-grow: 1;
+            padding-left: 20px;
+        }
+
+        .wishlist-item-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 6px;
+            text-decoration: none;
+            display: block;
+            transition: color 0.2s;
+        }
+
+        .wishlist-item-title:hover {
+            color: #1b7fed;
+        }
+
+        .wishlist-item-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1b7fed;
+        }
+
+        .wishlist-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-remove-wishlist {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #ef4444;
+            border-radius: 10px;
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-remove-wishlist:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .empty-state img {
+            width: 130px;
+            margin-bottom: 24px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header bar -->
+    <header class="box-shadow-sm sticky-top bg-white">
+        <div class="topbar-container bg-dark text-white py-2">
+            <div class="container d-flex justify-content-between align-items-center">
+                <span class="small">Amwaj Almesela E-commerce Platform</span>
+                <a href="/admin" class="text-white small text-decoration-none"><i class="fa fa-gears mr-1"></i>Admin Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="container py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <!-- Brand logo -->
+                <a href="/home" class="navbar-brand d-flex align-items-center font-weight-bold" style="font-size: 22px; color: #1b7fed;">
+                    <i class="fa fa-cubes mr-2"></i>Amwaj Store
+                </a>
+
+                <!-- Nav options -->
+                <div class="d-flex align-items-center">
+                    <a href="/products" class="btn btn-link text-dark font-weight-semibold mr-3">All Products</a>
+                    
+                    <div id="cart_items" class="d-flex align-items-center">
+                        <a class="navbar-tool-icon-box bg-secondary mr-3" href="/wishlists" style="position: relative;">
+                            <span class="navbar-tool-label countWishlist">0</span>
+                            <i class="navbar-tool-icon czi-heart"></i>
+                        </a>
+                        <a class="navbar-tool-icon-box bg-secondary" href="/cart" style="position: relative;">
+                            <span class="navbar-tool-label" id="header-cart-badge">0</span>
+                            <i class="navbar-tool-icon czi-cart"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container py-5">
+        <h2 class="mb-4 font-weight-bold">My Wishlist</h2>
+        
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="wishlist-card" id="wishlist-content">
+                    <div class="text-center py-5">
+                        <i class="fa fa-spinner fa-spin fa-2x text-muted"></i>
+                        <p class="mt-2 text-muted">Loading your wishlist items...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0 small">Copyright &copy; 2026 Amwaj Almesela. All Rights Reserved.</p>
+            <div class="mt-2">
+                <a href="#" class="text-white-50 mx-2 small text-decoration-none">Terms & Conditions</a>
+                <a href="#" class="text-white-50 mx-2 small text-decoration-none">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/jquery-2.2.4.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/toastr.js"></script>
+    <script src="js/local-cart-wishlist.js"></script>
+    <script src="js/premium-interactions.js"></script>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api/v1';
+
+        $(document).ready(function() {
+            loadWishlist();
+        });
+
+        function loadWishlist() {
+            const wishlist = getWishlist();
+            if (wishlist.length === 0) {
+                renderEmptyWishlist();
+                return;
+            }
+
+            $.ajax({
+                url: `${API_BASE}/products?limit=100`,
+                success: function(res) {
+                    renderWishlistList(wishlist, res.data);
+                },
+                error: function() {
+                    if (window.localProducts) {
+                        renderWishlistList(wishlist, window.localProducts);
+                    } else {
+                        $('#wishlist-content').html(`
+                            <div class="p-4 text-center text-danger">
+                                <i class="fa fa-exclamation-triangle fa-2x"></i>
+                                <p class="mt-2">Failed to load product catalog. Please try again.</p>
+                            </div>
+                        `);
+                    }
+                }
+            });
+        }
+
+        function getWishlist() {
+            return JSON.parse(localStorage.getItem('local_wishlist') || '[]');
+        }
+
+        function saveWishlist(wishlist) {
+            localStorage.setItem('local_wishlist', JSON.stringify(wishlist));
+            updateWishlistBadges();
+        }
+
+        function updateWishlistBadges() {
+            const wishlist = getWishlist();
+            $('.countWishlist').text(wishlist.length);
+        }
+
+        function renderEmptyWishlist() {
+            $('#wishlist-content').html(`
+                <div class="empty-state">
+                    <img src="images/image-place-holder.png" alt="Empty Wishlist" onerror="this.src='images/image-place-holder.png'">
+                    <h4 class="font-weight-bold text-dark">Your Wishlist is Empty</h4>
+                    <p class="text-muted mb-4">Save items to your wishlist to explore or add them later.</p>
+                    <a href="/products" class="btn btn-primary __rounded-10">Browse Products</a>
+                </div>
+            `);
+            updateWishlistBadges();
+        }
+
+        function renderWishlistList(wishlist, productsList) {
+            let html = '';
+            let validCount = 0;
+
+            wishlist.forEach(productId => {
+                const prod = productsList.find(p => p.id === parseInt(productId, 10) || p.slug === productId);
+                if (prod) {
+                    validCount++;
+                    const priceVal = parseFloat(prod.price) || parseFloat(String(prod.price).replace(/[^\d\.]/g, '')) || 0;
+                    const img = prod.images && prod.images.length > 0 ? prod.images[0].url : (prod.image || 'images/image-place-holder.png');
+
+                    html += `
+                        <div class="wishlist-item" id="wishlist-row-${prod.id}">
+                            <img src="${img}" class="wishlist-item-img" onerror="this.src='images/image-place-holder.png'">
+                            <div class="wishlist-item-info">
+                                <a href="/product?product=${prod.slug || prod.id}" class="wishlist-item-title">${prod.name}</a>
+                                <div class="wishlist-item-price">QAR ${priceVal.toFixed(2)}</div>
+                            </div>
+                            <div class="wishlist-actions">
+                                <button class="btn btn-primary" onclick="moveToCart(${prod.id}, '${prod.name.replace(/'/g, "\\'")}')" style="padding: 10px 18px; font-size: 13px; font-weight: 700;">
+                                    Add to Cart <i class="fa fa-shopping-cart ml-2"></i>
+                                </button>
+                                <button class="btn-remove-wishlist" onclick="removeWishlistItem(${prod.id})" title="Remove from wishlist">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (validCount === 0) {
+                renderEmptyWishlist();
+                return;
+            }
+
+            $('#wishlist-content').html(html);
+            updateWishlistBadges();
+            updateHeaderCartBadge();
+        }
+
+        window.removeWishlistItem = function(productId) {
+            let wishlist = getWishlist();
+            wishlist = wishlist.filter(id => id !== productId && String(id) !== String(productId));
+            saveWishlist(wishlist);
+
+            $(`#wishlist-row-${productId}`).slideUp(300, function() {
+                $(this).remove();
+                if (getWishlist().length === 0) {
+                    renderEmptyWishlist();
+                }
+            });
+
+            toastr.info('Product removed from wishlist.', 'Wishlist');
+        };
+
+        window.moveToCart = function(productId, productName) {
+            // Add to cart
+            if (window.addToCartLocal) {
+                window.addToCartLocal(productId, 1);
+            }
+            updateHeaderCartBadge();
+        };
+
+        function updateHeaderCartBadge() {
+            const cart = JSON.parse(localStorage.getItem('local_cart') || '[]');
+            const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+            $('#header-cart-badge').text(totalCount);
+        }
+    </script>
+</body>
+</html>
