@@ -92,6 +92,14 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/profile.html",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/profile",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/",
       "dest": "backend/server.js"
     },

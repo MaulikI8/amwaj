@@ -251,6 +251,10 @@ app.get(['/wishlists', '/wishlists.html'], (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'wishlists.html'));
 });
 
+app.get(['/profile', '/profile.html'], (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'profile.html'));
+});
+
 // Root fallback redirects to /home
 app.get('/', (req, res) => {
     res.redirect('/home');

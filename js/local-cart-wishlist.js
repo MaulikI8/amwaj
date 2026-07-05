@@ -434,6 +434,10 @@
                         <div class="dropdown-item text-primary font-weight-bold py-2 border-bottom">
                             Hello, ${user.name}
                         </div>
+                        <a class="dropdown-item" href="/profile">
+                            <i class="fa fa-user-circle mr-2"></i>My Profile
+                        </a>
+                        <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="#" id="auth-logout">
                             <i class="fa fa-sign-out mr-2"></i>Sign out
                         </a>
