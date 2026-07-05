@@ -6,10 +6,6 @@
       "use": "@vercel/node"
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
       "src": "css/**",
       "use": "@vercel/static"
     },
@@ -41,35 +37,55 @@
     },
     {
       "src": "/home",
-      "dest": "/index.html"
+      "dest": "backend/server.js"
     },
     {
       "src": "/products",
-      "dest": "/products.html"
+      "dest": "backend/server.js"
     },
     {
       "src": "/product",
-      "dest": "/product-detail.html"
+      "dest": "backend/server.js"
     },
     {
       "src": "/admin",
-      "dest": "/admin.html"
+      "dest": "backend/server.js"
     },
     {
       "src": "/cart",
-      "dest": "/cart.html"
+      "dest": "backend/server.js"
     },
     {
       "src": "/checkout",
-      "dest": "/checkout.html"
+      "dest": "backend/server.js"
     },
     {
       "src": "/wishlists",
-      "dest": "/wishlists.html"
+      "dest": "backend/server.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "src": "/",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/css/(.*)",
+      "dest": "/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/js/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/images/$1"
+    },
+    {
+      "src": "/fonts/(.*)",
+      "dest": "/fonts/$1"
+    },
+    {
+      "src": "/data/(.*)",
+      "dest": "/data/$1"
     }
   ]
 }
