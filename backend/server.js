@@ -182,11 +182,16 @@ sequelize.authenticate()
             console.log(`✅ Empty DB detected. Seeded default admin account: ${adminEmail}`);
         }
 
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running in development mode on port ${PORT}`);
-            console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
-        });
+        if (!process.env.VERCEL) {
+            app.listen(PORT, () => {
+                console.log(`🚀 Server running in development mode on port ${PORT}`);
+                console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
+            });
+        }
     })
     .catch(err => {
         console.error('❌ Unable to connect to the database:', err.message);
+        // Do not crash Vercel build/import process on database connection issues
     });
+
+module.exports = app;
