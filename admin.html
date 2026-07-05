@@ -500,6 +500,7 @@
             <ul class="sidebar-menu">
                 <li class="active" data-tab="overview"><a href="#"><i class="fa fa-dashboard"></i> Overview</a></li>
                 <li data-tab="products"><a href="#"><i class="fa fa-shopping-basket"></i> Products</a></li>
+                <li data-tab="categories"><a href="#"><i class="fa fa-folder-open"></i> Categories</a></li>
                 <li data-tab="orders"><a href="#"><i class="fa fa-shopping-cart"></i> Orders</a></li>
                 <li data-tab="reviews"><a href="#"><i class="fa fa-star"></i> Reviews</a></li>
                 <li data-tab="coupons"><a href="#"><i class="fa fa-tags"></i> Coupons</a></li>
@@ -774,6 +775,56 @@
                 </div>
             </div>
 
+            <!-- CATEGORIES TAB -->
+            <div id="tab-categories" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">Category Management</h2>
+                </div>
+                <div class="row">
+                    <!-- Create Category Card -->
+                    <div class="col-md-4 mb-4">
+                        <div class="glass-card p-4">
+                            <h5 class="mb-4">Create Category</h5>
+                            <form id="category-form">
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-semibold text-dark">Category Name</label>
+                                    <input type="text" id="category-name" class="form-control" placeholder="E.g. Electrical Items" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label class="small font-weight-semibold text-dark">Parent Category (Optional)</label>
+                                    <select id="category-parent" class="form-control">
+                                        <option value="">None (Top-Level Category)</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Save Category</button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Categories List Card -->
+                    <div class="col-md-8 mb-4">
+                        <div class="glass-card p-4">
+                            <h5 class="mb-4">Existing Categories</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Slug</th>
+                                            <th>Parent ID</th>
+                                            <th class="text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="categories-table-body">
+                                        <!-- Dynamic content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -815,6 +866,12 @@
                                 <label class="small font-weight-bold text-dark">Brand</label>
                                 <select id="product-brand" class="form-control">
                                     <option value="1">AMWAJ</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="small font-weight-bold text-dark">Category</label>
+                                <select id="product-category" class="form-control" required>
+                                    <!-- Will be populated dynamically -->
                                 </select>
                             </div>
                             <div class="col-12 form-group mb-3">
@@ -935,6 +992,7 @@
 
             if (tabName === 'overview') loadOverview();
             else if (tabName === 'products') loadProducts();
+            else if (tabName === 'categories') loadCategories();
             else if (tabName === 'orders') loadOrders();
             else if (tabName === 'reviews') loadReviews();
             else if (tabName === 'coupons') loadCoupons();
@@ -1082,6 +1140,7 @@
             $('#product-id').val('');
             $('#product-form')[0].reset();
             $('#file-upload-section').show();
+            loadCategories(); // Populates dropdown dynamically
         });
 
         $('#product-form').on('submit', function(e) {
@@ -1096,6 +1155,7 @@
                 discount_price: $('#product-discount-price').val() ? parseFloat($('#product-discount-price').val()) : null,
                 quantity: parseInt($('#product-quantity').val()),
                 brand_id: parseInt($('#product-brand').val()),
+                category_id: $('#product-category').val() ? parseInt($('#product-category').val()) : null,
                 description: $('#product-description').val()
             };
 
@@ -1126,6 +1186,7 @@
                 if (payload.discount_price) fd.append('discount_price', payload.discount_price);
                 fd.append('quantity', payload.quantity);
                 fd.append('brand_id', payload.brand_id);
+                if (payload.category_id) fd.append('category_id', payload.category_id);
                 fd.append('description', payload.description);
                 for(let i=0; i<files.length; i++) {
                     fd.append('images', files[i]);
@@ -1142,6 +1203,7 @@
         });
 
         window.editProduct = function(productId) {
+            loadCategories(); // Populates dropdown dynamically first
             $.ajax({
                 url: `${API_BASE}/products/${productId}`,
                 success: function(res) {
@@ -1154,6 +1216,7 @@
                     $('#product-discount-price').val(p.discount_price || '');
                     $('#product-quantity').val(p.inventory ? p.inventory.quantity : 0);
                     $('#product-brand').val(p.brand_id || 1);
+                    $('#product-category').val(p.category_id || '');
                     $('#product-description').val(p.description);
                     $('#file-upload-section').hide();
                     $('#product-modal').modal('show');
@@ -1419,8 +1482,115 @@
             });
         });
 
+        // 7. CATEGORIES
+        function loadCategories() {
+            $.ajax({
+                url: `${API_BASE}/categories`,
+                success: function(res) {
+                    const list = res.data || res;
+                    
+                    // Render category dropdowns
+                    let dropdownHtml = '<option value="">None (Top-Level Category)</option>';
+                    let productCatHtml = '<option value="">-- Select Category --</option>';
+                    
+                    list.forEach(cat => {
+                        if (!cat.parent_id) {
+                            dropdownHtml += `<option value="${cat.id}">${cat.name}</option>`;
+                        }
+                        productCatHtml += `<option value="${cat.id}">${cat.name}</option>`;
+                        
+                        const subs = cat.subcategories || cat.children || [];
+                        subs.forEach(sub => {
+                            productCatHtml += `<option value="${sub.id}">&nbsp;&nbsp;— ${sub.name}</option>`;
+                        });
+                    });
+                    
+                    $('#category-parent').html(dropdownHtml);
+                    $('#product-category').html(productCatHtml);
+
+                    // Render categories table list
+                    let tableHtml = '';
+                    list.forEach(cat => {
+                        tableHtml += `
+                            <tr>
+                                <td>${cat.id}</td>
+                                <td><strong>${cat.name}</strong></td>
+                                <td><code>${cat.slug}</code></td>
+                                <td><span class="badge badge-light">None</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${cat.id})">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        const subs = cat.subcategories || cat.children || [];
+                        subs.forEach(sub => {
+                            tableHtml += `
+                                <tr style="background-color: rgba(0,0,0,0.01);">
+                                    <td>${sub.id}</td>
+                                    <td><span class="text-muted pl-3">— ${sub.name}</span></td>
+                                    <td><code>${sub.slug}</code></td>
+                                    <td><span class="badge badge-secondary">${cat.name} (${cat.id})</span></td>
+                                    <td class="text-right">
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${sub.id})">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    });
+                    
+                    $('#categories-table-body').html(tableHtml || '<tr><td colspan="5" class="text-center text-muted py-3">No categories configured</td></tr>');
+                }
+            });
+        }
+
+        $('#category-form').on('submit', function(e) {
+            e.preventDefault();
+            const payload = {
+                name: $('#category-name').val(),
+                parent_id: $('#category-parent').val() ? parseInt($('#category-parent').val()) : null
+            };
+            
+            $.ajax({
+                url: `${API_BASE}/categories`,
+                method: 'POST',
+                headers: getHeaders(),
+                data: JSON.stringify(payload),
+                contentType: 'application/json',
+                success: function() {
+                    showAlert('Category created successfully');
+                    $('#category-form')[0].reset();
+                    loadCategories();
+                },
+                error: function(err) {
+                    showAlert(err.responseJSON ? err.responseJSON.message : 'Failed to create category', 'danger');
+                }
+            });
+        });
+
+        window.deleteCategory = function(catId) {
+            if (confirm('Delete this category? Any associated products may lose their category assignment.')) {
+                $.ajax({
+                    url: `${API_BASE}/categories/${catId}`,
+                    method: 'DELETE',
+                    headers: getHeaders(),
+                    success: function() {
+                        showAlert('Category deleted successfully');
+                        loadCategories();
+                    },
+                    error: function(err) {
+                        showAlert(err.responseJSON ? err.responseJSON.message : 'Failed to delete category', 'danger');
+                    }
+                });
+            }
+        };
+
         // Init
         checkAuth();
+        loadCategories(); // Pre-load category items
     </script>
 </body>
 </html>

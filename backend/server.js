@@ -12,7 +12,7 @@ const { rateLimit } = require('express-rate-limit');
 // Load environment variables
 dotenv.config();
 
-const { sequelize } = require('./models');
+const { sequelize, Role, User } = require('./models');
 const errorHandler = require('./middleware/error.middleware');
 
 const app = express();
@@ -135,8 +135,46 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 sequelize.authenticate()
-    .then(() => {
+    .then(async () => {
         console.log('✅ Database connection established successfully.');
+        
+        // Synchronize all database tables
+        await sequelize.sync();
+        console.log('✅ Database tables synchronized.');
+        
+        // Seed default Admin role & User if empty
+        const roleCount = await Role.count();
+        let adminRole;
+        if (roleCount === 0) {
+            adminRole = await Role.create({
+                name: 'admin',
+                permissions: ['all']
+            });
+            await Role.create({
+                name: 'customer',
+                permissions: []
+            });
+            console.log('✅ Default Roles created.');
+        } else {
+            adminRole = await Role.findOne({ where: { name: 'admin' } });
+        }
+
+        const userCount = await User.count();
+        if (userCount === 0 && adminRole) {
+            const adminEmail = process.env.ADMIN_EMAIL || 'admin@amwaj.com';
+            const adminPass = process.env.ADMIN_PASSWORD || 'admin123@';
+            const adminName = process.env.ADMIN_NAME || 'Super Admin';
+
+            await User.create({
+                name: adminName,
+                email: adminEmail,
+                password: adminPass,
+                role_id: adminRole.id,
+                email_verified_at: new Date()
+            });
+            console.log(`✅ Empty DB detected. Seeded default admin account: ${adminEmail}`);
+        }
+
         app.listen(PORT, () => {
             console.log(`🚀 Server running in development mode on port ${PORT}`);
             console.log(`📖 API Documentation: http://localhost:${PORT}/api-docs`);
