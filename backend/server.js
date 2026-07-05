@@ -110,20 +110,31 @@ function initializeDatabase() {
                 adminRole = await Role.findOne({ where: { name: 'admin' } });
             }
 
-            const userCount = await User.count();
-            if (userCount === 0 && adminRole) {
+            if (adminRole) {
                 const adminEmail = process.env.ADMIN_EMAIL || 'admin@amwaj.com';
                 const adminPass = process.env.ADMIN_PASSWORD || 'admin123@';
                 const adminName = process.env.ADMIN_NAME || 'Super Admin';
 
-                await User.create({
-                    name: adminName,
-                    email: adminEmail,
-                    password: adminPass,
-                    role_id: adminRole.id,
-                    email_verified_at: new Date()
+                // Find or create admin user by email
+                const [adminUser, created] = await User.findOrCreate({
+                    where: { email: adminEmail },
+                    defaults: {
+                        name: adminName,
+                        password: adminPass,
+                        role_id: adminRole.id,
+                        email_verified_at: new Date()
+                    }
                 });
-                console.log(`✅ Seeded default admin account: ${adminEmail}`);
+
+                if (!created) {
+                    // Ensure password and role are synchronized with current env variables
+                    adminUser.password = adminPass;
+                    adminUser.role_id = adminRole.id;
+                    await adminUser.save();
+                    console.log(`✅ Admin account verified and synchronized: ${adminEmail}`);
+                } else {
+                    console.log(`✅ Seeded default admin account: ${adminEmail}`);
+                }
             }
         })();
     }
